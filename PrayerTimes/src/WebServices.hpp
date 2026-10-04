@@ -10,6 +10,7 @@
 #include <QVariantMap>
 #include <QTimer>
 #include <QTime>
+#include <bb/system/InvokeManager>
 
 class WebServices : public QObject {
     Q_OBJECT
@@ -126,6 +127,8 @@ private:
     // Geçici veri saklama (Async işlem için)
     QVariantMap m_tmpR0, m_tmpR1, m_tmpDur;
     QString m_tmpCId, m_tmpCyId, m_tmpDId, m_tmpDName;
+
+    bb::system::InvokeManager* m_invokeManager;
 };
 
 #endif

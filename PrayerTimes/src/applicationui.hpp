@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2015 BlackBerry Limited.
+ * Copyright (c) 2013-2015 BlackBerry Limited.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,12 @@
 
 #include <QObject>
 
-namespace bb
-{
-    namespace cascades
-    {
+namespace bb {
+    namespace cascades {
         class LocaleHandler;
+    }
+    namespace system {
+        class InvokeManager;
     }
 }
 
@@ -34,17 +35,21 @@ class QTranslator;
  *
  * Use this object to create and init app UI, to create context objects, to register the new meta types etc.
  */
-class ApplicationUI : public QObject
+class ApplicationUI: public QObject
 {
     Q_OBJECT
 public:
     ApplicationUI();
-    virtual ~ApplicationUI() {}
+    virtual ~ApplicationUI() { }
+
+    Q_INVOKABLE void resendNotification();
+
 private slots:
     void onSystemLanguageChanged();
 private:
-    QTranslator* m_pTranslator;
-    bb::cascades::LocaleHandler* m_pLocaleHandler;
+    QTranslator* m_translator;
+    bb::cascades::LocaleHandler* m_localeHandler;
+    bb::system::InvokeManager* m_invokeManager;
 };
 
 #endif /* ApplicationUI_HPP_ */

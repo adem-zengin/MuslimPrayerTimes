@@ -18,6 +18,12 @@
 #define SERVICE_H_
 
 #include <QObject>
+#include <QVariantMap>
+#include <QVariantList>
+#include <QtNetwork/QNetworkReply>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QSettings>
+#include <QTimer>
 
 namespace bb {
     class Application;
@@ -39,12 +45,28 @@ public:
 private slots:
     void handleInvoke(const bb::system::InvokeRequest &);
     void onTimeout();
+    void onPrayerTimesReply();
+    void onGlobalSslErrors(QNetworkReply *reply, const QList<QSslError> &errors);
+    void onPrayerTimerFired();
+    void scheduleNextPrayerTimer();
 
 private:
     void triggerNotification();
+    void handleCalendarForVakit(const QString &vakit, const QVariantMap &tomorrowsTimes, const QDate &bugunTarih);
 
     bb::platform::Notification * m_notify;
     bb::system::InvokeManager * m_invokeManager;
+
+    void fetchPrayerTimes();
+    void scheduleBatchNotifications(const QVariantList &dataList);
+    QVariantMap m_prayerTimes;
+    QString m_serverUrl;
+    QNetworkAccessManager *m_networkManager;
+    bool getNotificationSetting(const QString &vakit, bool defaultValue);
+    QSettings m_settings;
+    QTimer *m_prayerTimer;
+    QString m_currentScheduledVakit;
+    QVariantMap m_tomorrowsTimesForSchedule;
 };
 
 #endif /* SERVICE_H_ */

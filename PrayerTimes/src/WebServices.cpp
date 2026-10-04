@@ -64,6 +64,10 @@ WebServices::WebServices(QObject *parent) : QObject(parent), m_isManualSaving(fa
     connect(m_timer, SIGNAL(timeout()), this, SLOT(onTimerTimeout()));
     m_timer->start(60000);
 
+    if (!m_invokeManager) {
+            m_invokeManager = new bb::system::InvokeManager(this);
+        }
+
     // --- GLOBAL SSL/TLS KONFİGÜRASYONU ---
     QSslConfiguration sslConfig = QSslConfiguration::defaultConfiguration();
     sslConfig.setProtocol(QSsl::SecureProtocols);
@@ -93,7 +97,7 @@ void WebServices::setBusy(bool busy) {
 
 // --- LOKAL DOSYA YOLU ---
 QString getYearlyFilePath() {
-    return QDir::currentPath() + "/data/yearly_times.json";
+    return QDir::currentPath() + "/data/monthly_times.json";
 }
 
 // --- ÜLKELER, ŞEHİRLER, İLÇELER (Aynı kalıyor) ---
@@ -231,14 +235,19 @@ void WebServices::fetchPrayerTimes() {
 
     QString bugun = QDate::currentDate().toString("yyyy-MM-dd");
 
+    /*bb::system::InvokeRequest request;
+    request.setTarget("com.example.PrayerTimesService");
+    request.setAction("com.example.PrayerTimesService.RESET");
+    m_invokeManager->invoke(request);*/
+
     QFile file(getYearlyFilePath());
     if (file.exists() && file.open(QIODevice::ReadOnly)) {
         JsonDataAccess jda;
         QVariantMap wrapper = jda.loadFromBuffer(file.readAll()).toMap();
-        QVariantList yearlyData = wrapper["yearly_data"].toList();
+        QVariantList yearlyData = wrapper["monthly_data"].toList();
         file.close();
 
-        qDebug() << "DEBUG: Çevrimdışı dosya okundu. Kayıt sayısı:" << yearlyData.size();
+        qDebug() << "DEBUG: Cevrimdisi dosya okundu. Kayit sayisi:" << yearlyData.size();
 
         foreach (const QVariant &gun, yearlyData) {
             QVariantMap gunMap = gun.toMap();
@@ -267,7 +276,7 @@ void WebServices::fetchPrayerTimes() {
 void WebServices::fetchPrayerTimesById(QString districtId) {
     if (districtId.isEmpty()) return;
     // URL'yi /yearly olarak güncelliyoruz
-    QUrl url(m_serverUrl + "/times/" + districtId + "/yearly");
+    QUrl url(m_serverUrl + "/times/" + districtId + "/monthly");
     QNetworkRequest request(url);
     request.setRawHeader("Accept", "application/json");
     QNetworkReply *reply = m_networkManager->get(request);
@@ -294,7 +303,7 @@ void WebServices::onPrayerTimesReply() {
         if (!dataList.isEmpty()) {
             // YILLIK VERİYİ KAYDET (Zaten çalışıyor demiştin)
             QVariantMap wrapper;
-            wrapper["yearly_data"] = dataList;
+            wrapper["monthly_data"] = dataList;
             QFile file(getYearlyFilePath());
             if (file.open(QIODevice::WriteOnly)) {
                 jda.save(wrapper, &file);
@@ -496,7 +505,7 @@ void WebServices::scheduleBatchNotifications(const QVariantList &dataList) {
     bb::pim::calendar::CalendarService calendarService;
     QDateTime suan = QDateTime::currentDateTime();
     QDate bugun = suan.date();
-    QDate onGunSonra = bugun.addDays(10);
+    QDate onGunSonra = bugun.addDays(1);
 
     QList<bb::pim::calendar::CalendarFolder> folders = calendarService.folders();
     if (folders.isEmpty()) return;
@@ -575,6 +584,7 @@ void WebServices::clearFutureCalendarEvents(const QString &vakitAdi) {
             }
         }
     }
+
     qDebug() << ">>> TEMIZLIK TAMAMLANDI: " << (vakitAdi.isEmpty() ? "HEPSI" : vakitAdi);
 }
 
@@ -583,7 +593,7 @@ void WebServices::loadYearlyDataAndSchedule() {
     if (file.open(QIODevice::ReadOnly)) {
         JsonDataAccess jda;
         QVariantMap root = jda.load(&file).toMap();
-        QVariantList dataList = root["yearly_data"].toList();
+        QVariantList dataList = root["monthly_data"].toList();
 
         if (!dataList.isEmpty()) {
             clearFutureCalendarEvents("");
@@ -607,12 +617,12 @@ void WebServices::backgroundScheduleTask() {
     if (file.open(QIODevice::ReadOnly)) {
         bb::data::JsonDataAccess jda;
         QVariantMap root = jda.load(&file).toMap();
-        QVariantList dataList = root["yearly_data"].toList();
+        QVariantList dataList = root["monthly_data"].toList();
 
         if (!dataList.isEmpty()) {
-            clearFutureCalendarEvents("");
+            //clearFutureCalendarEvents("");
             // Takvim planlamasını thread içinde yapıyoruz
-            this->scheduleBatchNotifications(dataList);
+            //this->scheduleBatchNotifications(dataList);
         }
         file.close();
     }
@@ -673,7 +683,7 @@ void WebServices::saveAllSettings(const QVariantMap &settingsMap,
     emit selectedDistrictNameChanged();
 
     // 4. Takvim Temizliği ve Planlama
-    clearFutureCalendarEvents("");
+    //clearFutureCalendarEvents("");
 
     QFile file(getYearlyFilePath());
     if (file.exists()) {

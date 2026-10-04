@@ -91,6 +91,7 @@ NavigationPane {
                                     var settingsPage = settingsDef.createObject();
                                     settingsPage.api = api; 
                                     navigationPane.push(settingsPage);
+                                    
                                 }
                             } 
                             else if (event.isCancel()) {
