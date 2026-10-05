@@ -3,7 +3,7 @@ import com.myapi.web 1.0
 
 Page {
     property variant api
-    // C++'dan kayıtlı ID'leri çekiyoruz
+    // Fetching saved IDs from C++
     property string savedCountryId: api.getSavedValue("location/country_id")
     property string savedCityId: api.getSavedValue("location/city_id")
     property string savedDistrictId: api.getSavedValue("location/district_id")
@@ -30,11 +30,11 @@ Page {
     property int durYatsi: api.getSavedValue("durations/yatsi") || 15
     
     titleBar: TitleBar {
-        title: "Ayarlar"
+        title: qsTr("Settings")
         acceptAction: ActionItem {
-            title: "Kaydet"
+            title: qsTr("Save")
             onTriggered: {
-                // Verileri bir paket (Map) haline getiriyoruz
+                // Bundling data into a map
                 var r0 = { "imsak": tempImsak, "gunes": tempGunes, "ogle": tempOgle, "ikindi": tempIkindi, "aksam": tempAksam, "yatsi": tempYatsi };
                 var r1 = { "imsak": remImsak, "gunes": remGunes, "ogle": remOgle, "ikindi": remIkindi, "aksam": remAksam, "yatsi": remYatsi };
                 var dur = { "imsak": durImsak, "gunes": durGunes, "ogle": durOgle, "ikindi": durIkindi, "aksam": durAksam, "yatsi": durYatsi };
@@ -44,11 +44,10 @@ Page {
                 var dId = districtDrop.selectedValue;
                 var dName = districtDrop.selectedOption.text;
                 
-                // ANA SAYFADAKİ ZAMANLAYICIYI TETİKLE
-                // NavigationPane her zaman hayattadır.
+                // TRIGGER TIMER ON MAIN PAGE
                 navigationPane.triggerBackgroundSave(r0, r1, dur, cId, cyId, dId, dName);
                 
-                // Ayarlar sayfasını güvenle kapat
+                // Safely close settings page
                 navigationPane.pop();
             }
         }
@@ -59,17 +58,16 @@ Page {
             id: api
             onCountryModelChanged: {
                 countryDrop.removeAll();
-               for (var i = 0; i < countryModel.size(); i++) {
-                     // Cascades ArrayDataModel için alternatif indeksleme formatı
-                     var data = countryModel.value(i); // veya countryModel.data([i])                  
-                     if (data) {
-                         var opt = optionComponent.createObject();
-                         opt.text = data["name_en"]; 
-                         opt.value = data["_id"];
-                         if (initialLoad && opt.value === savedCountryId) opt.selected = true;
-                         countryDrop.add(opt);
-                     }
-                 }
+                for (var i = 0; i < countryModel.size(); i++) {
+                    var data = countryModel.value(i);                
+                    if (data) {
+                        var opt = optionComponent.createObject();
+                        opt.text = data["name_en"]; 
+                        opt.value = data["_id"];
+                        if (initialLoad && opt.value === savedCountryId) opt.selected = true;
+                        countryDrop.add(opt);
+                    }
+                }
             }
             onCityModelChanged: {
                 cityDrop.removeAll();
@@ -94,7 +92,7 @@ Page {
                     districtDrop.add(dOpt);
                 }
                 districtDrop.enabled = (districtDrop.count() > 0);
-                initialLoad = false; // Zincirleme seçim bitti
+                initialLoad = false; 
             }
         },
         ComponentDefinition {
@@ -107,111 +105,112 @@ Page {
         Container {
             horizontalAlignment: HorizontalAlignment.Fill
             
-            Header { title: "Konum Bilgileri" }
+            Header { title: qsTr("Location Info") }
             
             Container {
                 leftPadding: 30; rightPadding: 30; topPadding: 20; bottomPadding: 20
-                Label { text: "Ülke Seçin"; textStyle.base: SystemDefaults.TextStyles.SubtitleText }
+                Label { text: qsTr("Select Country"); textStyle.base: SystemDefaults.TextStyles.SubtitleText }
                 DropDown {
                     id: countryDrop
-                    title: "Ülke Listesi"
+                    title: qsTr("Country List")
                     onSelectedOptionChanged: { if (selectedOption) api.fetchCities(selectedOption.value); }
                 }
-                Label { text: "Şehir Seçin"; textStyle.base: SystemDefaults.TextStyles.SubtitleText; topMargin: 20 }
+                Label { text: qsTr("Select City"); textStyle.base: SystemDefaults.TextStyles.SubtitleText; topMargin: 20 }
                 DropDown {
                     id: cityDrop
-                    title: "Şehir Listesi"
+                    title: qsTr("City List")
                     enabled: false
                     onSelectedOptionChanged: { if (selectedOption) api.fetchDistricts(selectedOption.value); }
                 }
-                Label { text: "İlçe Seçin"; textStyle.base: SystemDefaults.TextStyles.SubtitleText; topMargin: 20 }
+                Label { text: qsTr("Select District"); textStyle.base: SystemDefaults.TextStyles.SubtitleText; topMargin: 20 }
                 DropDown {
                     id: districtDrop
-                    title: "İlçe Listesi"
+                    title: qsTr("District List")
                     enabled: false
                 }
             }
             
-            Header { title: "Bildirim Ayarları"; topMargin: 20 }
+            Header { title: qsTr("On-Time Notifications"); topMargin: 40 }
             
             Container {
                 leftPadding: 30; rightPadding: 30; topPadding: 20; bottomPadding: 40
                 
-                // --- VAKİT SATIRLARI ---
-                // İmsak
+                // Fajr
                 Container {
                     layout: StackLayout { orientation: LayoutOrientation.LeftToRight }
-                    Label { text: "İmsak"; verticalAlignment: VerticalAlignment.Center; layoutProperties: StackLayoutProperties { spaceQuota: 1 } }
+                    Label { text: qsTr("Fajr"); verticalAlignment: VerticalAlignment.Center; layoutProperties: StackLayoutProperties { spaceQuota: 1 } textStyle.textAlign: TextAlign.Left }
                     ToggleButton { 
                         checked: tempImsak
-                        onCheckedChanged: { tempImsak = checked } // Doğrudan C++'a gitmiyor
+                        onCheckedChanged: { tempImsak = checked } 
                     }
                 }
-                // Güneş
+                // Sunrise
                 Container {
                     topMargin: 15
                     layout: StackLayout { orientation: LayoutOrientation.LeftToRight }
-                    Label { text: "Güneş"; verticalAlignment: VerticalAlignment.Center; layoutProperties: StackLayoutProperties { spaceQuota: 1 } }
+                    Label { text: qsTr("Sunrise"); verticalAlignment: VerticalAlignment.Center; layoutProperties: StackLayoutProperties { spaceQuota: 1 } textStyle.textAlign: TextAlign.Left}
                     ToggleButton { 
                         checked: tempGunes
-                        onCheckedChanged: { tempGunes = checked } // Doğrudan C++'a gitmiyor
+                        onCheckedChanged: { tempGunes = checked } 
                     }
                 }
-                // Öğle
+                // Dhuhr
                 Container {
                     topMargin: 15
                     layout: StackLayout { orientation: LayoutOrientation.LeftToRight }
-                    Label { text: "Öğle"; verticalAlignment: VerticalAlignment.Center; layoutProperties: StackLayoutProperties { spaceQuota: 1 } }
+                    Label { text: qsTr("Dhuhr"); verticalAlignment: VerticalAlignment.Center; layoutProperties: StackLayoutProperties { spaceQuota: 1 } textStyle.textAlign: TextAlign.Left}
                     ToggleButton { 
                         checked: tempOgle
-                        onCheckedChanged: { tempOgle = checked } // Doğrudan C++'a gitmiyor
+                        onCheckedChanged: { tempOgle = checked } 
                     }
                 }
-                // İkindi
+                // Asr
                 Container {
                     topMargin: 15
                     layout: StackLayout { orientation: LayoutOrientation.LeftToRight }
-                    Label { text: "İkindi"; verticalAlignment: VerticalAlignment.Center; layoutProperties: StackLayoutProperties { spaceQuota: 1 } }
+                    Label { text: qsTr("Asr"); verticalAlignment: VerticalAlignment.Center; layoutProperties: StackLayoutProperties { spaceQuota: 1 } textStyle.textAlign: TextAlign.Left}
                     ToggleButton { 
                         checked: tempIkindi
-                        onCheckedChanged: { tempIkindi = checked } // Doğrudan C++'a gitmiyor
+                        onCheckedChanged: { tempIkindi = checked } 
                     }
                 }
-                // Akşam
+                // Maghrib
                 Container {
                     topMargin: 15
                     layout: StackLayout { orientation: LayoutOrientation.LeftToRight }
-                    Label { text: "Akşam"; verticalAlignment: VerticalAlignment.Center; layoutProperties: StackLayoutProperties { spaceQuota: 1 } }
+                    Label { text: qsTr("Maghrib"); verticalAlignment: VerticalAlignment.Center; layoutProperties: StackLayoutProperties { spaceQuota: 1 } textStyle.textAlign: TextAlign.Left}
                     ToggleButton { 
                         checked: tempAksam
-                        onCheckedChanged: { tempAksam = checked } // Doğrudan C++'a gitmiyor
+                        onCheckedChanged: { tempAksam = checked } 
                     }
                 }
-                // Yatsı
+                // Isha
                 Container {
                     topMargin: 15
                     layout: StackLayout { orientation: LayoutOrientation.LeftToRight }
-                    Label { text: "Yatsı"; verticalAlignment: VerticalAlignment.Center; layoutProperties: StackLayoutProperties { spaceQuota: 1 } }
+                    Label { text: qsTr("Isha"); verticalAlignment: VerticalAlignment.Center; layoutProperties: StackLayoutProperties { spaceQuota: 1 } textStyle.textAlign: TextAlign.Left}
                     ToggleButton { 
                         checked: tempYatsi
-                        onCheckedChanged: { tempYatsi= checked } // Doğrudan C++'a gitmiyor
+                        onCheckedChanged: { tempYatsi = checked } 
                     }
                 }
             }
             
             Header {
-                title: "Öncül Bildirimler"
+                title: qsTr("Notifications Before Time")
+                topMargin: 40
             }
             
             Container {
                 layout: StackLayout { orientation: LayoutOrientation.LeftToRight }
-                leftPadding: 20.0; rightPadding: 20.0; topPadding: 10.0
+                leftPadding: 20.0; rightPadding: 20.0; topPadding: 20.0
                 verticalAlignment: VerticalAlignment.Center
                 
                 Label {
-                    text: "İmsak"
+                    text: qsTr("Fajr")
                     verticalAlignment: VerticalAlignment.Center
-                    layoutProperties: StackLayoutProperties { spaceQuota: 1 } // Etiket alanı kaplasın
+                    layoutProperties: StackLayoutProperties { spaceQuota: 1 } 
+                    textStyle.textAlign: TextAlign.Left
                 }
                 
                 TextField {
@@ -220,23 +219,18 @@ Page {
                     inputMode: TextFieldInputMode.NumbersAndPunctuation
                     maximumLength: 2
                     
-                    // GENİŞLİK AYARI BURADA:
-                    preferredWidth: 200.0 // Kutuyu küçültür
-                    horizontalAlignment: HorizontalAlignment.Right // Sağa yaslar
-                    textStyle.textAlign: TextAlign.Center // İçindeki rakamı ortalar
+                    preferredWidth: 200.0 
+                    horizontalAlignment: HorizontalAlignment.Right 
+                    textStyle.textAlign: TextAlign.Center 
                     
                     onTextChanging: {
                         var val = parseInt(text);
-                        if (!isNaN(val)) {
-                            remImsak = val;
-                        } else {
-                            remImsak = 0;
-                        }
+                        if (!isNaN(val)) { remImsak = val; } else { remImsak = 0; }
                     }
                 }
                 
                 Label {
-                    text: "dk." // Yanına bir birim eklemek şık durur
+                    text: qsTr("min.")
                     verticalAlignment: VerticalAlignment.Center
                     leftMargin: 10.0
                 }
@@ -248,9 +242,10 @@ Page {
                 verticalAlignment: VerticalAlignment.Center
                 
                 Label {
-                    text: "Güneş"
+                    text: qsTr("Sunrise")
                     verticalAlignment: VerticalAlignment.Center
-                    layoutProperties: StackLayoutProperties { spaceQuota: 1 } // Etiket alanı kaplasın
+                    layoutProperties: StackLayoutProperties { spaceQuota: 1 }
+                    textStyle.textAlign: TextAlign.Left
                 }
                 
                 TextField {
@@ -259,23 +254,18 @@ Page {
                     inputMode: TextFieldInputMode.NumbersAndPunctuation
                     maximumLength: 2
                     
-                    // GENİŞLİK AYARI BURADA:
-                    preferredWidth: 200.0 // Kutuyu küçültür
-                    horizontalAlignment: HorizontalAlignment.Right // Sağa yaslar
-                    textStyle.textAlign: TextAlign.Center // İçindeki rakamı ortalar
+                    preferredWidth: 200.0 
+                    horizontalAlignment: HorizontalAlignment.Right 
+                    textStyle.textAlign: TextAlign.Center 
                     
                     onTextChanging: {
                         var val = parseInt(text);
-                        if (!isNaN(val)) {
-                            remGunes = val;
-                        } else {
-                            remGunes = 0;
-                        }
+                        if (!isNaN(val)) { remGunes = val; } else { remGunes = 0; }
                     }
                 }
                 
                 Label {
-                    text: "dk." // Yanına bir birim eklemek şık durur
+                    text: qsTr("min.")
                     verticalAlignment: VerticalAlignment.Center
                     leftMargin: 10.0
                 }
@@ -287,9 +277,10 @@ Page {
                 verticalAlignment: VerticalAlignment.Center
                 
                 Label {
-                    text: "Öğle"
+                    text: qsTr("Dhuhr")
                     verticalAlignment: VerticalAlignment.Center
-                    layoutProperties: StackLayoutProperties { spaceQuota: 1 } // Etiket alanı kaplasın
+                    layoutProperties: StackLayoutProperties { spaceQuota: 1 }
+                    textStyle.textAlign: TextAlign.Left
                 }
                 
                 TextField {
@@ -298,23 +289,18 @@ Page {
                     inputMode: TextFieldInputMode.NumbersAndPunctuation
                     maximumLength: 2
                     
-                    // GENİŞLİK AYARI BURADA:
-                    preferredWidth: 200.0 // Kutuyu küçültür
-                    horizontalAlignment: HorizontalAlignment.Right // Sağa yaslar
-                    textStyle.textAlign: TextAlign.Center // İçindeki rakamı ortalar
+                    preferredWidth: 200.0 
+                    horizontalAlignment: HorizontalAlignment.Right 
+                    textStyle.textAlign: TextAlign.Center 
                     
                     onTextChanging: {
                         var val = parseInt(text);
-                        if (!isNaN(val)) {
-                            remOgle = val;
-                        } else {
-                            remOgle = 0;
-                        }
+                        if (!isNaN(val)) { remOgle = val; } else { remOgle = 0; }
                     }
                 }
                 
                 Label {
-                    text: "dk." // Yanına bir birim eklemek şık durur
+                    text: qsTr("min.")
                     verticalAlignment: VerticalAlignment.Center
                     leftMargin: 10.0
                 }
@@ -326,9 +312,10 @@ Page {
                 verticalAlignment: VerticalAlignment.Center
                 
                 Label {
-                    text: "İkindi"
+                    text: qsTr("Asr")
                     verticalAlignment: VerticalAlignment.Center
-                    layoutProperties: StackLayoutProperties { spaceQuota: 1 } // Etiket alanı kaplasın
+                    layoutProperties: StackLayoutProperties { spaceQuota: 1 }
+                    textStyle.textAlign: TextAlign.Left
                 }
                 
                 TextField {
@@ -337,23 +324,18 @@ Page {
                     inputMode: TextFieldInputMode.NumbersAndPunctuation
                     maximumLength: 2
                     
-                    // GENİŞLİK AYARI BURADA:
-                    preferredWidth: 200.0 // Kutuyu küçültür
-                    horizontalAlignment: HorizontalAlignment.Right // Sağa yaslar
-                    textStyle.textAlign: TextAlign.Center // İçindeki rakamı ortalar
+                    preferredWidth: 200.0 
+                    horizontalAlignment: HorizontalAlignment.Right 
+                    textStyle.textAlign: TextAlign.Center 
                     
                     onTextChanging: {
                         var val = parseInt(text);
-                        if (!isNaN(val)) {
-                            remIkindi = val;
-                        } else {
-                            remIkindi = 0;
-                        }
+                        if (!isNaN(val)) { remIkindi = val; } else { remIkindi = 0; }
                     }
                 }
                 
                 Label {
-                    text: "dk." // Yanına bir birim eklemek şık durur
+                    text: qsTr("min.")
                     verticalAlignment: VerticalAlignment.Center
                     leftMargin: 10.0
                 }
@@ -365,9 +347,10 @@ Page {
                 verticalAlignment: VerticalAlignment.Center
                 
                 Label {
-                    text: "Akşam"
+                    text: qsTr("Maghrib")
                     verticalAlignment: VerticalAlignment.Center
-                    layoutProperties: StackLayoutProperties { spaceQuota: 1 } // Etiket alanı kaplasın
+                    layoutProperties: StackLayoutProperties { spaceQuota: 1 }
+                    textStyle.textAlign: TextAlign.Left 
                 }
                 
                 TextField {
@@ -376,23 +359,18 @@ Page {
                     inputMode: TextFieldInputMode.NumbersAndPunctuation
                     maximumLength: 2
                     
-                    // GENİŞLİK AYARI BURADA:
-                    preferredWidth: 200.0 // Kutuyu küçültür
-                    horizontalAlignment: HorizontalAlignment.Right // Sağa yaslar
-                    textStyle.textAlign: TextAlign.Center // İçindeki rakamı ortalar
+                    preferredWidth: 200.0 
+                    horizontalAlignment: HorizontalAlignment.Right 
+                    textStyle.textAlign: TextAlign.Center 
                     
                     onTextChanging: {
                         var val = parseInt(text);
-                        if (!isNaN(val)) {
-                            remAksam = val;
-                        } else {
-                            remAksam = 0;
-                        }
+                        if (!isNaN(val)) { remAksam = val; } else { remAksam = 0; }
                     }
                 }
                 
                 Label {
-                    text: "dk." // Yanına bir birim eklemek şık durur
+                    text: qsTr("min.")
                     verticalAlignment: VerticalAlignment.Center
                     leftMargin: 10.0
                 }
@@ -404,9 +382,10 @@ Page {
                 verticalAlignment: VerticalAlignment.Center
                 
                 Label {
-                    text: "Yatsı"
+                    text: qsTr("Isha")
                     verticalAlignment: VerticalAlignment.Center
-                    layoutProperties: StackLayoutProperties { spaceQuota: 1 } // Etiket alanı kaplasın
+                    layoutProperties: StackLayoutProperties { spaceQuota: 1 }
+                    textStyle.textAlign: TextAlign.Left
                 }
                 
                 TextField {
@@ -415,41 +394,38 @@ Page {
                     inputMode: TextFieldInputMode.NumbersAndPunctuation
                     maximumLength: 2
                     
-                    // GENİŞLİK AYARI BURADA:
-                    preferredWidth: 200.0 // Kutuyu küçültür
-                    horizontalAlignment: HorizontalAlignment.Right // Sağa yaslar
-                    textStyle.textAlign: TextAlign.Center // İçindeki rakamı ortalar
+                    preferredWidth: 200.0 
+                    horizontalAlignment: HorizontalAlignment.Right 
+                    textStyle.textAlign: TextAlign.Center 
                     
                     onTextChanging: {
                         var val = parseInt(text);
-                        if (!isNaN(val)) {
-                            remYatsi = val;
-                        } else {
-                            remYatsi = 0;
-                        }
+                        if (!isNaN(val)) { remYatsi = val; } else { remYatsi = 0; }
                     }
                 }
                 
                 Label {
-                    text: "dk." // Yanına bir birim eklemek şık durur
+                    text: qsTr("min.")
                     verticalAlignment: VerticalAlignment.Center
                     leftMargin: 10.0
                 }
             }
             
             Header {
-                title: "Namaz Süresi"
+                title: qsTr("Prayer Duration")
+                topMargin: 40
             }
             
             Container {
                 layout: StackLayout { orientation: LayoutOrientation.LeftToRight }
-                leftPadding: 20.0; rightPadding: 20.0; topPadding: 10.0
+                leftPadding: 20.0; rightPadding: 20.0; topPadding: 20.0
                 verticalAlignment: VerticalAlignment.Center
                 
                 Label {
-                    text: "İmsak"
+                    text: qsTr("Fajr")
                     verticalAlignment: VerticalAlignment.Center
-                    layoutProperties: StackLayoutProperties { spaceQuota: 1 } // Etiket alanı kaplasın
+                    layoutProperties: StackLayoutProperties { spaceQuota: 1 }
+                    textStyle.textAlign: TextAlign.Left
                 }
                 
                 TextField {
@@ -458,23 +434,18 @@ Page {
                     inputMode: TextFieldInputMode.NumbersAndPunctuation
                     maximumLength: 2
                     
-                    // GENİŞLİK AYARI BURADA:
-                    preferredWidth: 200.0 // Kutuyu küçültür
-                    horizontalAlignment: HorizontalAlignment.Right // Sağa yaslar
-                    textStyle.textAlign: TextAlign.Center // İçindeki rakamı ortalar
+                    preferredWidth: 200.0 
+                    horizontalAlignment: HorizontalAlignment.Right 
+                    textStyle.textAlign: TextAlign.Center 
                     
                     onTextChanging: {
                         var val = parseInt(text);
-                        if (!isNaN(val)) {
-                            durImsak = val;
-                        } else {
-                            durImsak = 0;
-                        }
+                        if (!isNaN(val)) { durImsak = val; } else { durImsak = 0; }
                     }
                 }
                 
                 Label {
-                    text: "dk." // Yanına bir birim eklemek şık durur
+                    text: qsTr("min.")
                     verticalAlignment: VerticalAlignment.Center
                     leftMargin: 10.0
                 }
@@ -486,9 +457,10 @@ Page {
                 verticalAlignment: VerticalAlignment.Center
                 
                 Label {
-                    text: "Güneş"
+                    text: qsTr("Sunrise")
                     verticalAlignment: VerticalAlignment.Center
-                    layoutProperties: StackLayoutProperties { spaceQuota: 1 } // Etiket alanı kaplasın
+                    layoutProperties: StackLayoutProperties { spaceQuota: 1 }
+                    textStyle.textAlign: TextAlign.Left
                 }
                 
                 TextField {
@@ -497,23 +469,18 @@ Page {
                     inputMode: TextFieldInputMode.NumbersAndPunctuation
                     maximumLength: 2
                     
-                    // GENİŞLİK AYARI BURADA:
-                    preferredWidth: 200.0 // Kutuyu küçültür
-                    horizontalAlignment: HorizontalAlignment.Right // Sağa yaslar
-                    textStyle.textAlign: TextAlign.Center // İçindeki rakamı ortalar
+                    preferredWidth: 200.0 
+                    horizontalAlignment: HorizontalAlignment.Right 
+                    textStyle.textAlign: TextAlign.Center 
                     
                     onTextChanging: {
                         var val = parseInt(text);
-                        if (!isNaN(val)) {
-                            durGunes = val;
-                        } else {
-                            durGunes = 0;
-                        }
+                        if (!isNaN(val)) { durGunes = val; } else { durGunes = 0; }
                     }
                 }
                 
                 Label {
-                    text: "dk." // Yanına bir birim eklemek şık durur
+                    text: qsTr("min.")
                     verticalAlignment: VerticalAlignment.Center
                     leftMargin: 10.0
                 }
@@ -525,9 +492,10 @@ Page {
                 verticalAlignment: VerticalAlignment.Center
                 
                 Label {
-                    text: "Öğle"
+                    text: qsTr("Dhuhr")
                     verticalAlignment: VerticalAlignment.Center
-                    layoutProperties: StackLayoutProperties { spaceQuota: 1 } // Etiket alanı kaplasın
+                    layoutProperties: StackLayoutProperties { spaceQuota: 1 }
+                    textStyle.textAlign: TextAlign.Left
                 }
                 
                 TextField {
@@ -536,23 +504,18 @@ Page {
                     inputMode: TextFieldInputMode.NumbersAndPunctuation
                     maximumLength: 2
                     
-                    // GENİŞLİK AYARI BURADA:
-                    preferredWidth: 200.0 // Kutuyu küçültür
-                    horizontalAlignment: HorizontalAlignment.Right // Sağa yaslar
-                    textStyle.textAlign: TextAlign.Center // İçindeki rakamı ortalar
+                    preferredWidth: 200.0 
+                    horizontalAlignment: HorizontalAlignment.Right 
+                    textStyle.textAlign: TextAlign.Center 
                     
                     onTextChanging: {
                         var val = parseInt(text);
-                        if (!isNaN(val)) {
-                            durOgle = val;
-                        } else {
-                            durOgle = 0;
-                        }
+                        if (!isNaN(val)) { durOgle = val; } else { durOgle = 0; }
                     }
                 }
                 
                 Label {
-                    text: "dk." // Yanına bir birim eklemek şık durur
+                    text: qsTr("min.")
                     verticalAlignment: VerticalAlignment.Center
                     leftMargin: 10.0
                 }
@@ -564,9 +527,10 @@ Page {
                 verticalAlignment: VerticalAlignment.Center
                 
                 Label {
-                    text: "İkindi"
+                    text: qsTr("Asr")
                     verticalAlignment: VerticalAlignment.Center
-                    layoutProperties: StackLayoutProperties { spaceQuota: 1 } // Etiket alanı kaplasın
+                    layoutProperties: StackLayoutProperties { spaceQuota: 1 }
+                    textStyle.textAlign: TextAlign.Left
                 }
                 
                 TextField {
@@ -575,23 +539,18 @@ Page {
                     inputMode: TextFieldInputMode.NumbersAndPunctuation
                     maximumLength: 2
                     
-                    // GENİŞLİK AYARI BURADA:
-                    preferredWidth: 200.0 // Kutuyu küçültür
-                    horizontalAlignment: HorizontalAlignment.Right // Sağa yaslar
-                    textStyle.textAlign: TextAlign.Center // İçindeki rakamı ortalar
+                    preferredWidth: 200.0 
+                    horizontalAlignment: HorizontalAlignment.Right 
+                    textStyle.textAlign: TextAlign.Center 
                     
                     onTextChanging: {
                         var val = parseInt(text);
-                        if (!isNaN(val)) {
-                            durIkindi = val;
-                        } else {
-                            durIkindi = 0;
-                        }
+                        if (!isNaN(val)) { durIkindi = val; } else { durIkindi = 0; }
                     }
                 }
                 
                 Label {
-                    text: "dk." // Yanına bir birim eklemek şık durur
+                    text: qsTr("min.")
                     verticalAlignment: VerticalAlignment.Center
                     leftMargin: 10.0
                 }
@@ -603,9 +562,10 @@ Page {
                 verticalAlignment: VerticalAlignment.Center
                 
                 Label {
-                    text: "Akşam"
+                    text: qsTr("Maghrib")
                     verticalAlignment: VerticalAlignment.Center
-                    layoutProperties: StackLayoutProperties { spaceQuota: 1 } // Etiket alanı kaplasın
+                    layoutProperties: StackLayoutProperties { spaceQuota: 1 }
+                    textStyle.textAlign: TextAlign.Left
                 }
                 
                 TextField {
@@ -614,23 +574,18 @@ Page {
                     inputMode: TextFieldInputMode.NumbersAndPunctuation
                     maximumLength: 2
                     
-                    // GENİŞLİK AYARI BURADA:
-                    preferredWidth: 200.0 // Kutuyu küçültür
-                    horizontalAlignment: HorizontalAlignment.Right // Sağa yaslar
-                    textStyle.textAlign: TextAlign.Center // İçindeki rakamı ortalar
+                    preferredWidth: 200.0 
+                    horizontalAlignment: HorizontalAlignment.Right 
+                    textStyle.textAlign: TextAlign.Center 
                     
                     onTextChanging: {
                         var val = parseInt(text);
-                        if (!isNaN(val)) {
-                            durAksam = val;
-                        } else {
-                            durAksam = 0;
-                        }
+                        if (!isNaN(val)) { durAksam = val; } else { durAksam = 0; }
                     }
                 }
                 
                 Label {
-                    text: "dk." // Yanına bir birim eklemek şık durur
+                    text: qsTr("min.")
                     verticalAlignment: VerticalAlignment.Center
                     leftMargin: 10.0
                 }
@@ -642,9 +597,10 @@ Page {
                 verticalAlignment: VerticalAlignment.Center
                 
                 Label {
-                    text: "Yatsı"
+                    text: qsTr("Isha")
                     verticalAlignment: VerticalAlignment.Center
-                    layoutProperties: StackLayoutProperties { spaceQuota: 1 } // Etiket alanı kaplasın
+                    layoutProperties: StackLayoutProperties { spaceQuota: 1 }
+                    textStyle.textAlign: TextAlign.Left
                 }
                 
                 TextField {
@@ -653,23 +609,18 @@ Page {
                     inputMode: TextFieldInputMode.NumbersAndPunctuation
                     maximumLength: 2
                     
-                    // GENİŞLİK AYARI BURADA:
-                    preferredWidth: 200.0 // Kutuyu küçültür
-                    horizontalAlignment: HorizontalAlignment.Right // Sağa yaslar
-                    textStyle.textAlign: TextAlign.Center // İçindeki rakamı ortalar
+                    preferredWidth: 200.0 
+                    horizontalAlignment: HorizontalAlignment.Right 
+                    textStyle.textAlign: TextAlign.Center 
                     
                     onTextChanging: {
                         var val = parseInt(text);
-                        if (!isNaN(val)) {
-                            durYatsi = val;
-                        } else {
-                            durYatsi = 0;
-                        }
+                        if (!isNaN(val)) { durYatsi = val; } else { durYatsi = 0; }
                     }
                 }
                 
                 Label {
-                    text: "dk." // Yanına bir birim eklemek şık durur
+                    text: qsTr("min.")
                     verticalAlignment: VerticalAlignment.Center
                     leftMargin: 10.0
                 }

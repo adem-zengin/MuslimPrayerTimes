@@ -1,5 +1,5 @@
 1
-15
+14
 ActiveFrame.qml
 Frame.qml
 Frame2.qml
@@ -12,6 +12,5 @@ images/bluegradientline.png
 images/ic_map.png
 images/ic_settings_light.png
 main.qml
-main_old.qml
 settings.qml
 VakitSatiri.qml

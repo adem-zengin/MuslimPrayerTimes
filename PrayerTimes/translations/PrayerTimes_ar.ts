@@ -1,78 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.0">
+<TS version="2.0" language="ar_SA">
 <context>
     <name>ActiveFrame</name>
     <message>
         <source>Fajr</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">الإمساك</translation>
     </message>
     <message>
         <source>Sunrise</source>
-        <translation type="unfinished"></translation>
+        <translation>الشروق</translation>
     </message>
     <message>
         <source>Dhuhr</source>
-        <translation type="unfinished"></translation>
+        <translation>الظهر</translation>
     </message>
     <message>
         <source>Asr</source>
-        <translation type="unfinished"></translation>
+        <translation>العصر</translation>
     </message>
     <message>
         <source>Maghrib</source>
-        <translation type="unfinished"></translation>
+        <translation>المغرب</translation>
     </message>
     <message>
         <source>Isha</source>
-        <translation type="unfinished"></translation>
+        <translation>العشاء</translation>
     </message>
     <message>
         <source>Muharram</source>
-        <translation type="unfinished"></translation>
+        <translation>محرم</translation>
     </message>
     <message>
         <source>Safar</source>
-        <translation type="unfinished"></translation>
+        <translation>صفر</translation>
     </message>
     <message>
         <source>Rabi&apos; al-Awwal</source>
-        <translation type="unfinished"></translation>
+        <translation>ربيع الأول</translation>
     </message>
     <message>
         <source>Rabi&apos; al-Thani</source>
-        <translation type="unfinished"></translation>
+        <translation>ربيع الآخر</translation>
     </message>
     <message>
         <source>Jumada al-Awwal</source>
-        <translation type="unfinished"></translation>
+        <translation>جمادى الأولى</translation>
     </message>
     <message>
-        <source>Jumada al-Thani</source>
-        <translation type="unfinished"></translation>
+        <source>Jumada al-Akhirah</source>
+        <translation type="obsolete">جمادى الآخرة</translation>
     </message>
     <message>
         <source>Rajab</source>
-        <translation type="unfinished"></translation>
+        <translation>رجب</translation>
     </message>
     <message>
         <source>Sha&apos;ban</source>
-        <translation type="unfinished"></translation>
+        <translation>شعبان</translation>
     </message>
     <message>
         <source>Ramadan</source>
-        <translation type="unfinished"></translation>
+        <translation>رمضان</translation>
     </message>
     <message>
         <source>Shawwal</source>
-        <translation type="unfinished"></translation>
+        <translation>شوال</translation>
     </message>
     <message>
         <source>Dhu al-Qi&apos;dah</source>
-        <translation type="unfinished"></translation>
+        <translation>ذو القعدة</translation>
     </message>
     <message>
         <source>Dhu al-Hijjah</source>
+        <translation>ذو الحجة</translation>
+    </message>
+    <message>
+        <source>Jumada al-Thani</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -80,122 +84,126 @@
     <name>main</name>
     <message>
         <source>January</source>
-        <translation type="unfinished"></translation>
+        <translation>يناير</translation>
     </message>
     <message>
         <source>February</source>
-        <translation type="unfinished"></translation>
+        <translation>فبراير</translation>
     </message>
     <message>
         <source>March</source>
-        <translation type="unfinished"></translation>
+        <translation>مارس</translation>
     </message>
     <message>
         <source>April</source>
-        <translation type="unfinished"></translation>
+        <translation>أبريل</translation>
     </message>
     <message>
         <source>May</source>
-        <translation type="unfinished"></translation>
+        <translation>مايو</translation>
     </message>
     <message>
         <source>June</source>
-        <translation type="unfinished"></translation>
+        <translation>يونيو</translation>
     </message>
     <message>
         <source>July</source>
-        <translation type="unfinished"></translation>
+        <translation>يوليو</translation>
     </message>
     <message>
         <source>August</source>
-        <translation type="unfinished"></translation>
+        <translation>أغسطس</translation>
     </message>
     <message>
         <source>September</source>
-        <translation type="unfinished"></translation>
+        <translation>سبتمبر</translation>
     </message>
     <message>
         <source>October</source>
-        <translation type="unfinished"></translation>
+        <translation>أكتوبر</translation>
     </message>
     <message>
         <source>November</source>
-        <translation type="unfinished"></translation>
+        <translation>نوفمبر</translation>
     </message>
     <message>
         <source>December</source>
-        <translation type="unfinished"></translation>
+        <translation>ديسمبر</translation>
     </message>
     <message>
         <source>Muharram</source>
-        <translation type="unfinished"></translation>
+        <translation>محرم</translation>
     </message>
     <message>
         <source>Safar</source>
-        <translation type="unfinished"></translation>
+        <translation>صفر</translation>
     </message>
     <message>
         <source>Rabi&apos; al-Awwal</source>
-        <translation type="unfinished"></translation>
+        <translation>ربيع الأول</translation>
     </message>
     <message>
         <source>Rabi&apos; al-Thani</source>
-        <translation type="unfinished"></translation>
+        <translation>ربيع الآخر</translation>
     </message>
     <message>
         <source>Jumada al-Awwal</source>
-        <translation type="unfinished"></translation>
+        <translation>جمادى الأولى</translation>
     </message>
     <message>
-        <source>Jumada al-Thani</source>
-        <translation type="unfinished"></translation>
+        <source>Jumada al-Akhirah</source>
+        <translation type="obsolete">جمادى الآخرة</translation>
     </message>
     <message>
         <source>Rajab</source>
-        <translation type="unfinished"></translation>
+        <translation>رجب</translation>
     </message>
     <message>
         <source>Sha&apos;ban</source>
-        <translation type="unfinished"></translation>
+        <translation>شعبان</translation>
     </message>
     <message>
         <source>Ramadan</source>
-        <translation type="unfinished"></translation>
+        <translation>رمضان</translation>
     </message>
     <message>
         <source>Shawwal</source>
-        <translation type="unfinished"></translation>
+        <translation>شوال</translation>
     </message>
     <message>
         <source>Dhu al-Qi&apos;dah</source>
-        <translation type="unfinished"></translation>
+        <translation>ذو القعدة</translation>
     </message>
     <message>
         <source>Dhu al-Hijjah</source>
-        <translation type="unfinished"></translation>
+        <translation>ذو الحجة</translation>
     </message>
     <message>
         <source>Fajr</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">الإمساك</translation>
     </message>
     <message>
         <source>Sunrise</source>
-        <translation type="unfinished"></translation>
+        <translation>الشروق</translation>
     </message>
     <message>
         <source>Dhuhr</source>
-        <translation type="unfinished"></translation>
+        <translation>الظهر</translation>
     </message>
     <message>
         <source>Asr</source>
-        <translation type="unfinished"></translation>
+        <translation>العصر</translation>
     </message>
     <message>
         <source>Maghrib</source>
-        <translation type="unfinished"></translation>
+        <translation>المغرب</translation>
     </message>
     <message>
         <source>Isha</source>
+        <translation>العشاء</translation>
+    </message>
+    <message>
+        <source>Jumada al-Thani</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -203,79 +211,79 @@
     <name>settings</name>
     <message>
         <source>Settings</source>
-        <translation type="unfinished"></translation>
+        <translation>الإعدادات</translation>
     </message>
     <message>
         <source>Save</source>
-        <translation type="unfinished"></translation>
+        <translation>حفظ</translation>
     </message>
     <message>
         <source>Location Info</source>
-        <translation type="unfinished"></translation>
+        <translation>معلومات الموقع</translation>
     </message>
     <message>
         <source>Select Country</source>
-        <translation type="unfinished"></translation>
+        <translation>اختر الدولة</translation>
     </message>
     <message>
         <source>Country List</source>
-        <translation type="unfinished"></translation>
+        <translation>قائمة الدول</translation>
     </message>
     <message>
         <source>Select City</source>
-        <translation type="unfinished"></translation>
+        <translation>اختر المدينة</translation>
     </message>
     <message>
         <source>City List</source>
-        <translation type="unfinished"></translation>
+        <translation>قائمة المدن</translation>
     </message>
     <message>
         <source>Select District</source>
-        <translation type="unfinished"></translation>
+        <translation>اختر المنطقة</translation>
     </message>
     <message>
         <source>District List</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Fajr</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Sunrise</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Dhuhr</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Asr</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Maghrib</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Isha</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>min.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <source>Prayer Duration</source>
-        <translation type="unfinished"></translation>
+        <translation>قائمة المناطق</translation>
     </message>
     <message>
         <source>On-Time Notifications</source>
-        <translation type="unfinished"></translation>
+        <translation>إعدادات الإشعارات</translation>
+    </message>
+    <message>
+        <source>Fajr</source>
+        <translation type="unfinished">الإمساك</translation>
+    </message>
+    <message>
+        <source>Sunrise</source>
+        <translation>الشروق</translation>
+    </message>
+    <message>
+        <source>Dhuhr</source>
+        <translation>الظهر</translation>
+    </message>
+    <message>
+        <source>Asr</source>
+        <translation>العصر</translation>
+    </message>
+    <message>
+        <source>Maghrib</source>
+        <translation>المغرب</translation>
+    </message>
+    <message>
+        <source>Isha</source>
+        <translation>العشاء</translation>
+    </message>
+    <message>
+        <source>min.</source>
+        <translation>د.</translation>
+    </message>
+    <message>
+        <source>Prayer Duration</source>
+        <translation>مدة الصلاة</translation>
     </message>
     <message>
         <source>Notifications Before Time</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">تنبيهات مسبقة</translation>
     </message>
 </context>
 </TS>

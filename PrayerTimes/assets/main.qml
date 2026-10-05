@@ -6,42 +6,51 @@ NavigationPane {
     
     onTopChanged: {
         if (page == navigationPane.at(0)) { 
-            console.log("Ayarlardan dönüldü, veriler tazeleniyor...");
+            console.log("Returned from settings, refreshing data...");
             
-            // 1. Yeni konuma göre vakitleri çek (Bu işlem prayerTimes'ı günceller)
+            // 1. Fetch prayer times according to new location (updates prayerTimes)
             api.fetchPrayerTimes(); 
             
-            // 2. Konum isminin güncellendiğini teyit et
+            // 2. Confirm location name update
             api.selectedDistrictNameChanged();
             
-            // 3. (Opsiyonel) Eğer C++ tarafında 'prayerTimesChanged' sinyali 
-            // otomatik tetiklenmiyorsa manuel tetiklemek gerekebilir:
+            // 3. (Optional) If 'prayerTimesChanged' signal is not automatically triggered in C++:
             // api.prayerTimesChanged();
         }
     }
     
-    // AY İSİMLERİ TANIMLAMALARI (Tüm sayfa erişebilir)
-    property variant miladiAylar: [
-    "", "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", 
-    "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
-    ]
-    property variant hicriAylar: [
-    "", "Muharrem", "Safer", "Rebiülevvel", "Rebiülahir", 
-    "Cemaziyelevvel", "Cemaziyelahir", "Recep", "Şaban", 
-        "Ramazan", "Şevval", "Zilkade", "Zilhicce"
-        ]
     
-    // AYARLAR SAYFASINDAN ÇAĞRILAN GECİKMELİ KAYIT FONKSİYONU
+    function getMiladiAy(ayNo) {
+        var aylar = [
+        "", 
+        qsTr("January"), qsTr("February"), qsTr("March"), qsTr("April"), 
+        qsTr("May"), qsTr("June"), qsTr("July"), qsTr("August"), 
+        qsTr("September"), qsTr("October"), qsTr("November"), qsTr("December")
+        ];
+        return aylar[ayNo] || "";
+    }
+    
+    function getHicriAy(ayNo) {
+        var aylar = [
+        "", 
+        qsTr("Muharram"), qsTr("Safar"), qsTr("Rabi' al-Awwal"), qsTr("Rabi' al-Thani"), 
+            qsTr("Jumada al-Awwal"), qsTr("Jumada al-Thani"), qsTr("Rajab"), qsTr("Sha'ban"), 
+            qsTr("Ramadan"), qsTr("Shawwal"), qsTr("Dhu al-Qi'dah"), qsTr("Dhu al-Hijjah")
+            ];
+        return aylar[ayNo] || "";
+    }
+    
+    // DELAYED SAVE FUNCTION CALLED FROM SETTINGS PAGE
     function triggerBackgroundSave(r0, r1, dur, cId, cyId, dId, dName) {
-        // C++ tarafında singleShot timer kullanan asenkron metodu çağırıyoruz.
-        // Bu sayede QML thread'i bloke olmaz, sayfa anında 'pop' edilir.
+        // Calling async method using singleShot timer on C++ side.
+        // This avoids blocking the QML thread and pops the page instantly.
         api.saveAllSettingsAsync(r0, r1, dur, cId, cyId, dId, dName);
     }
     
-    // AÇILIŞTAKİ DONMAYI ÖNLEYEN FONKSİYON
+    // FUNCTION PREVENTING FREEZING AT STARTUP
     function delayedStartup() {
-        console.log("Uygulama açıldı, ağır işlemler 2 saniye sonra başlayacak...");
-        // API içindeki asenkron yükleme metodunu çağırıyoruz
+        console.log("App opened, heavy operations will start in 2 seconds...");
+        // Calling async loading method inside API
         api.loadDataAndScheduleAsync(2000); 
     }
     
@@ -61,41 +70,41 @@ NavigationPane {
                         horizontalAlignment: HorizontalAlignment.Left
                         textStyle.fontWeight: FontWeight.W500
                         textFit.minFontSizeValue: 10.0
-
+                    
                     }
                     
-                    // TitleBar içindeki sağdaki Container:
+                    // Right container inside TitleBar:
                     Container {
                         id: settingsButtonContainer
                         horizontalAlignment: HorizontalAlignment.Right
                         verticalAlignment: VerticalAlignment.Center
                         
-                        // Tıklama durumunu tutan değişken
+                        // Variable holding click status
                         property bool isPressed: false
                         
-                        // Tıklama alanını genişletmek için (UX için önemli)
+                        // Expand touch area (important for UX)
                         leftPadding: 10.0
                         rightPadding: 10.0
                         
                         onTouch: {
                             if (event.isDown()) {
-                                // Parmak dokunduğu an mavi yap
+                                // Turn blue upon touch
                                 isPressed = true;
                             } 
                             else if (event.isUp()) {
-                                // Parmak çekildiği an (Eğer hala butonun üzerindeyse)
+                                // Upon release (if still over the button)
                                 if (isPressed) {
                                     isPressed = false;
                                     
-                                    // Sayfa açma işlemi
+                                    // Page opening action
                                     var settingsPage = settingsDef.createObject();
                                     settingsPage.api = api; 
                                     navigationPane.push(settingsPage);
-                                    
+                                
                                 }
                             } 
                             else if (event.isCancel()) {
-                                // Sürükleyip dışarı çıktıysa efekti iptal et
+                                // Cancel effect if dragged outside
                                 isPressed = false;
                             }
                         }
@@ -104,12 +113,12 @@ NavigationPane {
                             id: settingsIcon
                             imageSource: "asset:///images/ic_settings_light.png"
                             
-                            // Renk değişimi (Overlay)
+                            // Color overlay
                             filterColor: {
                                 if (settingsButtonContainer.isPressed) {
-                                    return Color.create("#00AEEF"); // Basılınca Parlak Mavi
+                                    return Color.create("#00AEEF"); // Bright blue when pressed
                                 } else {
-                                    // Normal durum: Koyu temada beyaz, açık temada siyah
+                                    // Normal state: White in dark theme, black in light theme
                                     return (Application.themeSupport.theme.colorTheme.style == VisualStyle.Dark) 
                                     ? Color.White : Color.Black;
                                 }
@@ -119,7 +128,7 @@ NavigationPane {
                             
                             preferredWidth: 80.0
                             preferredHeight: 80.0
-                            accessibility.name: "Ayarlar"
+                            accessibility.name: "Settings"
                         }
                     }
                 }
@@ -130,9 +139,9 @@ NavigationPane {
             layout: StackLayout {}
             horizontalAlignment: HorizontalAlignment.Fill
             verticalAlignment: VerticalAlignment.Fill
-            background: Color.White // Temiz bir görünüm için
+            background: Color.White // For a clean look
             
-            // ÜST KISIM: Tarih Paneli (Ekranın %35'i)
+            // TOP SECTION: Date Panel (35% of screen)
             Container {
                 layout: StackLayout { orientation: LayoutOrientation.LeftToRight }
                 layoutProperties: StackLayoutProperties { spaceQuota: 3.0 }
@@ -140,7 +149,7 @@ NavigationPane {
                 verticalAlignment: VerticalAlignment.Fill
                 topPadding: 40; bottomPadding: 40
                 
-                // 1. MİLANİ KISIM (Sol taraf - Siyah)
+                // 1. GREGORIAN SECTION (Left side - Black)
                 Container {
                     layoutProperties: StackLayoutProperties { spaceQuota: 1 }
                     verticalAlignment: VerticalAlignment.Center
@@ -150,26 +159,25 @@ NavigationPane {
                         text: api.prayerTimes.date ? api.prayerTimes.date.substring(8, 10) : "--"
                         horizontalAlignment: HorizontalAlignment.Center
                         textFit.minFontSizeValue: 30.0
-                        // ALT BOŞLUĞU SIFIRLA VEYA NEGATİF YAP
+                        // RESET OR MAKE BOTTOM MARGIN NEGATIVE
                         bottomMargin: 0 
                     }
                     Label {
-                        // Ay ismini diziden çekiyoruz
+                        // Fetching month name from function
                         text: {
                             if (api.prayerTimes.date) {
                                 var ayNo = parseInt(api.prayerTimes.date.substring(5, 7));
-                                return navigationPane.miladiAylar[ayNo] || "";
+                                return navigationPane.getMiladiAy(ayNo);
                             }
                             return "";
                         }
                         textStyle.fontSize: FontSize.Large
                         horizontalAlignment: HorizontalAlignment.Center
-                        // ÜST BOŞLUĞU SIFIRLA VEYA NEGATİF YAP
-                        topMargin: -10.0 // Mesafeyi daha da kapatmak için negatif değer kullanabilirsin
+                        topMargin: -10.0
                     }
                 }
                 
-                // Dikey Ayırıcı Çizgi
+                // Vertical Divider Line
                 Container {
                     preferredWidth: 2
                     background: Color.LightGray
@@ -177,7 +185,7 @@ NavigationPane {
                     topMargin: 40; bottomMargin: 40
                 }
                 
-                // 2. HİCRİ KISIM (Sağ taraf - Mavi)
+                // 2. HIJRI SECTION (Right side - Blue)
                 Container {
                     layoutProperties: StackLayoutProperties { spaceQuota: 1 }
                     verticalAlignment: VerticalAlignment.Center
@@ -188,29 +196,28 @@ NavigationPane {
                         horizontalAlignment: HorizontalAlignment.Center
                         textFit.minFontSizeValue: 30.0
                         
-                        // ALT BOŞLUĞU SIFIRLA VEYA NEGATİF YAP
+                        // RESET OR MAKE BOTTOM MARGIN NEGATIVE
                         bottomMargin: 0 
                     }
                     Label {
                         text: {
                             if (api.prayerTimes.hijri_date) {
                                 var h = api.prayerTimes.hijri_date;
-                                return navigationPane.hicriAylar[parseInt(h.month)] || h.month;
+                                var ayNo = parseInt(h.month);
+                                // Get translation if numeric month, else print text directly
+                                return navigationPane.getHicriAy(ayNo) || h.month;
                             }
                             return "";
                         }
                         textStyle.fontSize: FontSize.Large
                         textStyle.color: Color.create("#00AEEF")
                         horizontalAlignment: HorizontalAlignment.Center
-                        
-                        // ÜST BOŞLUĞU SIFIRLA VEYA NEGATİF YAP
-                        topMargin: -10.0 // Mesafeyi daha da kapatmak için negatif değer kullanabilirsin
+                        topMargin: -10.0
                     }
                 }
-            } // Tarih Paneli Sonu
+            } // End of Date Panel
             
-            // ALT KISIM: Vakit Listesi (Ekranın %65'i)
-            // ALT KISIM: Vakit Listesi
+            // BOTTOM SECTION: Prayer Times List (65% of screen)
             Container {
                 layout: StackLayout {} 
                 layoutProperties: StackLayoutProperties { spaceQuota: 7.0 }
@@ -218,40 +225,47 @@ NavigationPane {
                 verticalAlignment: VerticalAlignment.Fill
                 leftPadding: 100; rightPadding: 100; bottomPadding: 10
                 
-                // Vakitler (6 adet)
+                // Prayer Times (6 items)
                 VakitSatiri { 
-                    baslik: "İmsak"; vakit: api.prayerTimes.imsak || "--:--"
+                    baslik: qsTr("Fajr") 
+                    vakit: api.prayerTimes.imsak || "--:--"
                     layoutProperties: StackLayoutProperties { spaceQuota: 1.0 } 
+                    // NOTE: Even if "Fajr" is displayed on screen, background matching uses the Turkish word from the API.
                     isCurrent: api.currentVakit === "İmsak" 
                 }
                 VakitSatiri { 
-                    baslik: "Güneş"; vakit: api.prayerTimes.gunes || "--:--"
+                    baslik: qsTr("Sunrise")
+                    vakit: api.prayerTimes.gunes || "--:--"
                     layoutProperties: StackLayoutProperties { spaceQuota: 1.0 } 
                     isCurrent: api.currentVakit === "Güneş"
                 }
                 VakitSatiri { 
-                    baslik: "Öğle"; vakit: api.prayerTimes.ogle || "--:--"
+                    baslik: qsTr("Dhuhr")
+                    vakit: api.prayerTimes.ogle || "--:--"
                     layoutProperties: StackLayoutProperties { spaceQuota: 1.0 } 
                     isCurrent: api.currentVakit === "Öğle"
                 }
                 VakitSatiri { 
-                    baslik: "İkindi"; vakit: api.prayerTimes.ikindi || "--:--"
+                    baslik: qsTr("Asr")
+                    vakit: api.prayerTimes.ikindi || "--:--"
                     layoutProperties: StackLayoutProperties { spaceQuota: 1.0 } 
                     isCurrent: api.currentVakit === "İkindi"
                 }
                 VakitSatiri { 
-                    baslik: "Akşam"; vakit: api.prayerTimes.aksam || "--:--"
+                    baslik: qsTr("Maghrib")
+                    vakit: api.prayerTimes.aksam || "--:--"
                     layoutProperties: StackLayoutProperties { spaceQuota: 1.0 } 
                     isCurrent: api.currentVakit === "Akşam"
                 }
                 VakitSatiri { 
-                    baslik: "Yatsı"; vakit: api.prayerTimes.yatsi || "--:--"
+                    baslik: qsTr("Isha")
+                    vakit: api.prayerTimes.yatsi || "--:--"
                     layoutProperties: StackLayoutProperties { spaceQuota: 1.0 } 
                     isCurrent: api.currentVakit === "Yatsı"
                 }
-                                
-                // EN ALT SATIR (Süre göstergesi)
-                // Bunu da bir Container'a alıyoruz ki yüksekliği diğerleriyle aynı olsun
+                
+                // BOTTOM ROW (Time remaining indicator)
+                // Wrapped in a Container to match height with others
                 Container {
                     layoutProperties: StackLayoutProperties { spaceQuota: 1.0 }
                     horizontalAlignment: HorizontalAlignment.Fill
@@ -259,13 +273,13 @@ NavigationPane {
                     layout: DockLayout {}
                     
                     Label {
-                        // C++'dan gelen m_remainingTime verisi
+                        // m_remainingTime data coming from C++
                         text: api.remainingTime || "-- : --" 
                         horizontalAlignment: HorizontalAlignment.Center
                         verticalAlignment: VerticalAlignment.Center
                         textStyle.fontSize: FontSize.XLarge
                         textStyle.fontWeight: FontWeight.W400
-                        textStyle.color: Color.create("#00AEEF") // Kalan süreyi de mavi yapabiliriz
+                        textStyle.color: Color.create("#00AEEF") // Remaining time can also be blue
                     }
                 }
             }
@@ -290,13 +304,13 @@ NavigationPane {
         if (!api.hasSavedLocation()) {
             navigationPane.push(settingsDef.createObject());
         } else {
-            // 1. Kritik veriyi (vakitler) hemen çek (Hafif işlem)
+            // 1. Fetch critical data (prayer times) immediately (lightweight)
             api.fetchPrayerTimes(); 
             
-            // 2. Takvim yazma gibi ağır işlemleri geciktirerek başlat
+            // 2. Start heavy tasks like calendar writing after delay
             delayedStartup();
         }
     }
-    
+
 
 }
