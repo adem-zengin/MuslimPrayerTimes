@@ -50,6 +50,7 @@ NavigationPane {
     Page {
         titleBar: TitleBar {
             kind: TitleBarKind.FreeForm
+            scrollBehavior: TitleBarScrollBehavior.Sticky
             kindProperties: FreeFormTitleBarKindProperties {
                 Container {
                     layout: DockLayout {}
@@ -148,9 +149,9 @@ NavigationPane {
                     
                     Label {
                         // "2026-03-27" -> "27"
-                        text: api.prayerTimes.date ? api.prayerTimes.date.substring(8, 10) : "--"
+                        text: api.prayerTimes.date ? api.prayerTimes.date.substring(8, 10) : "00"
                         horizontalAlignment: HorizontalAlignment.Center
-                        textFit.minFontSizeValue: 30.0
+                        textFit.minFontSizeValue: 20.0
                         // RESET OR MAKE BOTTOM MARGIN NEGATIVE
                         bottomMargin: 0 
                     }
@@ -161,7 +162,7 @@ NavigationPane {
                                 var ayNo = parseInt(api.prayerTimes.date.substring(5, 7));
                                 return navigationPane.getMiladiAy(ayNo);
                             }
-                            return "";
+                            return "G. Month";
                         }
                         textStyle.fontSize: FontSize.Large
                         horizontalAlignment: HorizontalAlignment.Center
@@ -183,10 +184,10 @@ NavigationPane {
                     verticalAlignment: VerticalAlignment.Center
                     
                     Label {
-                        text: api.prayerTimes.hijri_date ? api.prayerTimes.hijri_date.day : "--"                        
+                        text: api.prayerTimes.hijri_date ? api.prayerTimes.hijri_date.day : "00"                        
                         textStyle.color: Color.create("#00AEEF")
                         horizontalAlignment: HorizontalAlignment.Center
-                        textFit.minFontSizeValue: 30.0
+                        textFit.minFontSizeValue: 20.0
                         
                         // RESET OR MAKE BOTTOM MARGIN NEGATIVE
                         bottomMargin: 0 
@@ -199,7 +200,7 @@ NavigationPane {
                                 // Get translation if numeric month, else print text directly
                                 return navigationPane.getHicriAy(ayNo) || h.month;
                             }
-                            return "";
+                            return "H. Month";
                         }
                         textStyle.fontSize: FontSize.Large
                         textStyle.color: Color.create("#00AEEF")

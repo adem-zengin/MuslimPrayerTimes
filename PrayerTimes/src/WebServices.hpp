@@ -55,7 +55,7 @@ public:
     QString currentVakit() const { return m_currentVakit; }
     QString selectedDistrictName() const {
         // m_settings kullanımı daha pratiktir
-        return m_settings.value("selected_district_name", QString::fromUtf8("Konum Seçilmedi")).toString();
+        return m_settings.value("selected_district_name", QString::fromUtf8("LOCATION")).toString();
     }
 
     Q_INVOKABLE QString getSavedValue(const QString &key);
