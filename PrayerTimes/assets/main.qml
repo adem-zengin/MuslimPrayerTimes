@@ -46,15 +46,7 @@ NavigationPane {
         // This avoids blocking the QML thread and pops the page instantly.
         api.saveAllSettingsAsync(r0, r1, dur, cId, cyId, dId, dName);
     }
-    
-    // FUNCTION PREVENTING FREEZING AT STARTUP
-    function delayedStartup() {
-        console.log("App opened, heavy operations will start in 2 seconds...");
-        // Calling async loading method inside API
-        api.loadDataAndScheduleAsync(2000); 
-    }
-    
-    
+
     Page {
         titleBar: TitleBar {
             kind: TitleBarKind.FreeForm
@@ -306,9 +298,7 @@ NavigationPane {
         } else {
             // 1. Fetch critical data (prayer times) immediately (lightweight)
             api.fetchPrayerTimes(); 
-            
-            // 2. Start heavy tasks like calendar writing after delay
-            delayedStartup();
+
         }
     }
 

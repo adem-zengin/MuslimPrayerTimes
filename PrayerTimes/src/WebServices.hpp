@@ -58,13 +58,10 @@ public:
         return m_settings.value("selected_district_name", QString::fromUtf8("Konum Seçilmedi")).toString();
     }
 
-    Q_INVOKABLE void scheduleNotifications(); // Vakitlere göre bildirimleri planlar
-    Q_INVOKABLE void sendInstantNotification(const QString &title, const QString &body); // Test amaçlı
     Q_INVOKABLE QString getSavedValue(const QString &key);
-    // BU SATIRI EKLE:
-    Q_INVOKABLE void loadDataAndSchedule();
+
     Q_INVOKABLE void scheduleBatchNotifications(const QVariantList &dataList);
-    Q_INVOKABLE void loadYearlyDataAndSchedule();
+    Q_INVOKABLE void loadMonthlyDataAndSchedule();
     Q_INVOKABLE void clearFutureCalendarEvents(const QString &vakitAdi = "");
     Q_INVOKABLE void saveAllSettings(const QVariantMap &settingsMap,
                                      const QVariantMap &reminderMap,
@@ -74,7 +71,6 @@ public:
                                      const QString &districtId,
                                      const QString &districtName);
     Q_INVOKABLE void saveAllSettingsAsync(const QVariantMap &r0, const QVariantMap &r1, const QVariantMap &dur, const QString &cId, const QString &cyId, const QString &dId, const QString &dName);
-    Q_INVOKABLE void loadDataAndScheduleAsync(int delayMs);
     bool isBusy() const;
     void setBusy(bool busy);
 
@@ -96,12 +92,8 @@ private slots:
     void onDistrictsReply();
     void onPrayerTimesReply();
     void updateCountdown();
-    void onTimerTimeout(); // Timer tetiklendiğinde çalışacak slot
-    // Arka plan iş parçacığında çalışacak asıl işlem
-    void backgroundScheduleTask();
     // Gecikmeli işlemler için yeni slotlar (Lambda hatasını çözer)
     void onAsyncSaveTriggered();
-    void onAsyncLoadTriggered();
     void onGlobalSslErrors(QNetworkReply *reply, const QList<QSslError> &errors);
 
 
@@ -129,6 +121,7 @@ private:
     QString m_tmpCId, m_tmpCyId, m_tmpDId, m_tmpDName;
 
     bb::system::InvokeManager* m_invokeManager;
+    void resetService();
 };
 
 #endif

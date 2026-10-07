@@ -60,8 +60,6 @@ WebServices::WebServices(QObject *parent) : QObject(parent), m_isManualSaving(fa
     m_timer = new QTimer(this);
     // Vakit geri sayım
     connect(m_timer, SIGNAL(timeout()), this, SLOT(updateCountdown()));
-    // Hub Bildirim Kontrolü
-    connect(m_timer, SIGNAL(timeout()), this, SLOT(onTimerTimeout()));
     m_timer->start(60000);
 
     if (!m_invokeManager) {
@@ -96,7 +94,7 @@ void WebServices::setBusy(bool busy) {
 }
 
 // --- LOKAL DOSYA YOLU ---
-QString getYearlyFilePath() {
+QString getMonthlyFilePath() {
     return QDir::currentPath() + "/data/monthly_times.json";
 }
 
@@ -235,12 +233,7 @@ void WebServices::fetchPrayerTimes() {
 
     QString bugun = QDate::currentDate().toString("yyyy-MM-dd");
 
-    /*bb::system::InvokeRequest request;
-    request.setTarget("com.example.PrayerTimesService");
-    request.setAction("com.example.PrayerTimesService.RESET");
-    m_invokeManager->invoke(request);*/
-
-    QFile file(getYearlyFilePath());
+    QFile file(getMonthlyFilePath());
     if (file.exists() && file.open(QIODevice::ReadOnly)) {
         JsonDataAccess jda;
         QVariantMap wrapper = jda.loadFromBuffer(file.readAll()).toMap();
@@ -263,6 +256,7 @@ void WebServices::fetchPrayerTimes() {
 
                 emit prayerTimesChanged();
                 updateCountdown();
+                resetService();
                 return; // Bugün bulundu, fonksiyonu bitir
             }
         }
@@ -304,7 +298,7 @@ void WebServices::onPrayerTimesReply() {
             // YILLIK VERİYİ KAYDET (Zaten çalışıyor demiştin)
             QVariantMap wrapper;
             wrapper["monthly_data"] = dataList;
-            QFile file(getYearlyFilePath());
+            QFile file(getMonthlyFilePath());
             if (file.open(QIODevice::WriteOnly)) {
                 jda.save(wrapper, &file);
                 file.close();
@@ -338,6 +332,7 @@ void WebServices::onPrayerTimesReply() {
                     // ÖNCE veriyi set edip SONRA sinyalleri gönderiyoruz
                     emit prayerTimesChanged();
                     updateCountdown(); // Bu fonksiyon zaten emit remainingTimeChanged() ve currentVakitChanged() yapıyor
+                    resetService();
 
                     bulundu = true;
                     break;
@@ -429,76 +424,10 @@ bool WebServices::getNotificationSetting(const QString &vakit, bool defaultValue
     return m_settings.value("notifications/" + vakit, defaultValue).toBool(); // 'notifications'
 }
 
-void WebServices::sendInstantNotification(const QString &title, const QString &body) {
-    bb::platform::Notification *notification = new bb::platform::Notification(this);
-    notification->setTitle(title);
-    notification->setBody(body);
-
-    // Tıklama özelliğini şimdilik pas geçip sadece Hub'a düşmesini sağlayalım
-    notification->notify();
-}
-
-void WebServices::scheduleNotifications() {
-    // 1. Kullanıcının seçtiği vakitleri ve güncel namaz vakitlerini alalım
-    // m_prayerTimes içindeki verileri (imsak, gunes, ogle, ikindi, aksam, yatsi) döngüye sokuyoruz.
-
-    QStringList vakitler;
-    vakitler << "imsak" << "gunes" << "ogle" << "ikindi" << "aksam" << "yatsi";
-
-    foreach (const QString &vakit, vakitler) {
-        // Kullanıcı bu vakit için bildirim istiyor mu?
-        if (getNotificationSetting(vakit, false)) {
-
-            QString vakitSaati = m_prayerTimes.value(vakit).toString();
-            if (vakitSaati.isEmpty()) continue;
-
-            // BB10'da arka planda kesin zamanlı bildirim için 'Invocation'
-            // veya basitçe Hub bildirimi kullanılır.
-            // Şimdilik Hub'a düşecek yapı:
-            bb::platform::Notification *n = new bb::platform::Notification(this);
-            n->setTitle(vakit.toUpper() + " Vakti");
-            n->setBody("Ezan okunuyor, vakit girdi: " + vakitSaati);
-
-            // Not: Gerçek bir ezan uygulaması için QTimer ile saati bekleyip
-            // tam o an notify() çağırmak veya 'Scheduled Invocations' kullanmak gerekir.
-            // Örn: if (suan == vakitSaati) n->notify();
-        }
-    }
-}
-
 
 QString WebServices::getSavedValue(const QString &key) {
     // QSettings içinden anahtarı oku, yoksa boş dön
     return m_settings.value(key, "").toString();
-}
-
-void WebServices::onTimerTimeout() {
-    QDateTime now = QDateTime::currentDateTime();
-    QString currentTime = now.toString("HH:mm");
-
-    // Test için log basalım (Momentics Console'da görünür)
-    qDebug() << "Bildirim kontrolü yapılıyor. Saat:" << currentTime;
-
-    QStringList vakitler;
-    vakitler << "imsak" << "gunes" << "ogle" << "ikindi" << "aksam" << "yatsi";
-
-    foreach (const QString &vakit, vakitler) {
-        // 1. Kullanıcı bu vakit için bildirim istiyor mu?
-        if (getNotificationSetting(vakit, false)) {
-
-            // 2. Vakit saatini al (Örn: "13:15")
-            // Not: m_prayerTimes'ın içindeki verinin HH:mm formatında olduğundan emin olun
-            QString vakitSaati = m_prayerTimes.value(vakit).toString();
-
-            // 3. Saatler eşleşiyor mu?
-            if (!vakitSaati.isEmpty() && currentTime == vakitSaati) {
-                // Daha önce bu dakika içinde bildirim atılmadığından emin olmak için
-                // küçük bir kontrol eklenebilir, ama 1 dakikalık timer için genelde gerekmez.
-                sendInstantNotification(vakit.toUpper() + " Vakti", "Ezan okunuyor: " + vakitSaati);
-                qDebug() << vakit << " için bildirim gönderildi!";
-            }
-        }
-    }
 }
 
 void WebServices::scheduleBatchNotifications(const QVariantList &dataList) {
@@ -588,8 +517,8 @@ void WebServices::clearFutureCalendarEvents(const QString &vakitAdi) {
     qDebug() << ">>> TEMIZLIK TAMAMLANDI: " << (vakitAdi.isEmpty() ? "HEPSI" : vakitAdi);
 }
 
-void WebServices::loadYearlyDataAndSchedule() {
-    QFile file(getYearlyFilePath());
+void WebServices::loadMonthlyDataAndSchedule() {
+    QFile file(getMonthlyFilePath());
     if (file.open(QIODevice::ReadOnly)) {
         JsonDataAccess jda;
         QVariantMap root = jda.load(&file).toMap();
@@ -600,35 +529,6 @@ void WebServices::loadYearlyDataAndSchedule() {
             scheduleBatchNotifications(dataList);
         }
     }
-}
-
-
-// WebServices.cpp içindeki fonksiyonu şu şekilde güncelle
-void WebServices::loadDataAndSchedule() {
-    // UI kilitlenmesini önlemek için işlemi arka plana (thread) atıyoruz
-    setBusy(true);
-    QtConcurrent::run(this, &WebServices::backgroundScheduleTask);
-}
-
-void WebServices::backgroundScheduleTask() {
-    QString path = getYearlyFilePath();
-    QFile file(path);
-
-    if (file.open(QIODevice::ReadOnly)) {
-        bb::data::JsonDataAccess jda;
-        QVariantMap root = jda.load(&file).toMap();
-        QVariantList dataList = root["monthly_data"].toList();
-
-        if (!dataList.isEmpty()) {
-            //clearFutureCalendarEvents("");
-            // Takvim planlamasını thread içinde yapıyoruz
-            //this->scheduleBatchNotifications(dataList);
-        }
-        file.close();
-    }
-
-    // İşlem bittiğinde sinyali ana thread'e güvenli şekilde gönder
-    QMetaObject::invokeMethod(this, "setBusy", Qt::QueuedConnection, Q_ARG(bool, false));
 }
 
 void WebServices::saveAllSettings(const QVariantMap &settingsMap,
@@ -671,7 +571,7 @@ void WebServices::saveAllSettings(const QVariantMap &settingsMap,
 
     // 3. Konum Bilgilerini Kaydet
     if (m_settings.value("location/district_id").toString() != districtId) {
-        QFile::remove(getYearlyFilePath());
+        QFile::remove(getMonthlyFilePath());
     }
     m_settings.setValue("location/country_id", countryId);
     m_settings.setValue("location/city_id", cityId);
@@ -681,13 +581,10 @@ void WebServices::saveAllSettings(const QVariantMap &settingsMap,
 
     m_settings.sync(); // Disk yazımını zorla
     emit selectedDistrictNameChanged();
-
-    // 4. Takvim Temizliği ve Planlama
-    //clearFutureCalendarEvents("");
-
-    QFile file(getYearlyFilePath());
+    resetService();
+    QFile file(getMonthlyFilePath());
     if (file.exists()) {
-        loadYearlyDataAndSchedule();
+        loadMonthlyDataAndSchedule();
         m_isManualSaving = false;
     } else {
         fetchPrayerTimesById(districtId);
@@ -706,11 +603,11 @@ void WebServices::onAsyncSaveTriggered() {
     this->saveAllSettings(m_tmpR0, m_tmpR1, m_tmpDur, m_tmpCId, m_tmpCyId, m_tmpDId, m_tmpDName);
 }
 
-void WebServices::loadDataAndScheduleAsync(int delayMs) {
-    QTimer::singleShot(delayMs, this, SLOT(onAsyncLoadTriggered()));
+void WebServices::resetService() {
+    bb::system::InvokeRequest request;
+    request.setTarget("com.example.PrayerTimesService");
+    request.setAction("com.example.PrayerTimesService.RESET");
+    m_invokeManager->invoke(request);
 }
 
-void WebServices::onAsyncLoadTriggered() {
-    this->loadDataAndSchedule();
-}
 

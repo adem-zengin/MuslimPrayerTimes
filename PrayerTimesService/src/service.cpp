@@ -21,6 +21,7 @@
 #include <QDate>
 #include <QDateTime>
 #include <QDebug>
+#include <QLocale>
 
 using namespace bb::platform;
 using namespace bb::system;
@@ -211,39 +212,90 @@ void Service::scheduleNextPrayerTimer()
 void Service::onPrayerTimerFired()
 {
     qDebug() << "[PRAYER_SERVICE] *** VAKIT GELDI! TIMER TETIKLENDI *** Vakit:" << m_currentScheduledVakit;
-
     QSettings settings;
-    bool notifyEnabled = settings.value("notifications/" + m_currentScheduledVakit, false).toBool();
+
+    // Vakit anahtarını küçük harfe ve standart formata getiriyoruz
+    QString vakitKey = m_currentScheduledVakit.toLower();
+
+    bool notifyEnabled = settings.value("notifications/" + vakitKey, false).toBool();
 
     if (notifyEnabled) {
+        // Dil ayarını alıyoruz (varsayılan: "en", alternatifler: "tr", "ar")
+        QString lang = QLocale::system().name().left(2).toLower();
+
+        QString title;
+        QString body;
+
+        if (lang == "tr") {
+            title = "Namaz Vakitleri";
+
+            QHash<QString, QString> trVakitler;
+            trVakitler["imsak"]  = QString::fromUtf8("İMSAK");
+            trVakitler["gunes"]  = QString::fromUtf8("GÜNEŞ");
+            trVakitler["ogle"]   = QString::fromUtf8("ÖĞLE");
+            trVakitler["ikindi"] = QString::fromUtf8("İKİNDİ");
+            trVakitler["aksam"]  = QString::fromUtf8("AKŞAM");
+            trVakitler["yatsi"]  = QString::fromUtf8("YATSI");
+
+            QString vakitAdi = trVakitler.value(vakitKey, m_currentScheduledVakit);
+            body = QString("%1 Vakti!").arg(vakitAdi);
+        }
+        else if (lang == "ar") {
+            title = QString::fromUtf8("أوقات الصلاة");
+
+            QHash<QString, QString> arVakitler;
+            arVakitler["imsak"]  = QString::fromUtf8("الفجر");
+            arVakitler["gunes"]  = QString::fromUtf8("الشروق");
+            arVakitler["ogle"]   = QString::fromUtf8("الظهر");
+            arVakitler["ikindi"] = QString::fromUtf8("العصر");
+            arVakitler["aksam"]  = QString::fromUtf8("المغرب");
+            arVakitler["yatsi"]  = QString::fromUtf8("العشاء");
+
+            QString vakitAdi = arVakitler.value(vakitKey, m_currentScheduledVakit);
+            body = QString::fromUtf8("صلاة %1!").arg(vakitAdi);
+        }
+        else { // Varsayılan: İngilizce ("en")
+            title = "Prayer Times";
+
+            QHash<QString, QString> enVakitler;
+            enVakitler["imsak"]  = "FAJR";
+            enVakitler["gunes"]  = "SUNRISE";
+            enVakitler["ogle"]   = "DHUHR";
+            enVakitler["ikindi"] = "ASR";
+            enVakitler["aksam"]  = "MAGHRIB";
+            enVakitler["yatsi"]  = "ISHA";
+
+            QString vakitAdi = enVakitler.value(vakitKey, m_currentScheduledVakit);
+            body = QString("%1 Time!").arg(vakitAdi);
+        }
+
+        bb::platform::Notification::deleteAllFromInbox();
         // 1. Hub Bildirimi Gönder
         bb::platform::Notification *n = new bb::platform::Notification(this);
-        n->setTitle(m_currentScheduledVakit.toUpper() + " Vakti");
-        n->setBody("Ezan okunuyor: " + QDateTime::currentDateTime().toString("HH:mm"));
+        n->setTitle(title);
+        n->setBody(body);
         n->notify();
-        qDebug() << "[PRAYER_SERVICE] Hub bildirimi gonderildi.";
+        qDebug() << "[PRAYER_SERVICE] Hub bildirimi gonderildi (" << lang << "):" << title << "-" << body;
 
-        // 2. Takvim Islemleri
+        // 2. Takvim İşlemleri
         handleCalendarForVakit(m_currentScheduledVakit, m_tomorrowsTimesForSchedule, QDate::currentDate());
     } else {
         qDebug() << "[PRAYER_SERVICE]" << m_currentScheduledVakit << "icin bildirimler QSettings'te kapali.";
     }
 
-    // Islem bitti, zaman kaybetmeden BIR SONRAKI VAKIT için timer kurulur
+    // İşlem bitti, zaman kaybetmeden BİR SONRAKİ VAKİT için timer kurulur
     scheduleNextPrayerTimer();
 }
 
 void Service::handleInvoke(const bb::system::InvokeRequest & request)
 {
-    qDebug() << "[PRAYER_SERVICE] Invoke alindi:" << request.action();
     if (request.action().compare("com.example.PrayerTimesService.RESET") == 0) {
-        triggerNotification();
-        // Ayarlar veya veriler sıfırlandığında zamanlayıcıyı yeniden hesapla
+        qDebug() << "[PRAYER_SERVICE] Invoke alindi:" << request.action();
         scheduleNextPrayerTimer();
     }
 }
 
-void Service::triggerNotification()
+void Service::clearNotification()
 {
     qDebug() << "[PRAYER_SERVICE] triggerNotification tetiklendi.";
     QTimer::singleShot(2000, this, SLOT(onTimeout()));
@@ -253,7 +305,6 @@ void Service::onTimeout()
 {
     qDebug() << "[PRAYER_SERVICE] onTimeout: Bildirim kutusu temizleniyor.";
     bb::platform::Notification::clearEffectsForAll();
-    bb::platform::Notification::deleteAllFromInbox();
 }
 
 void Service::onGlobalSslErrors(QNetworkReply *reply, const QList<QSslError> &errors) {

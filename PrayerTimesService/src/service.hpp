@@ -51,7 +51,7 @@ private slots:
     void scheduleNextPrayerTimer();
 
 private:
-    void triggerNotification();
+    void clearNotification();
     void handleCalendarForVakit(const QString &vakit, const QVariantMap &tomorrowsTimes, const QDate &bugunTarih);
 
     bb::platform::Notification * m_notify;
