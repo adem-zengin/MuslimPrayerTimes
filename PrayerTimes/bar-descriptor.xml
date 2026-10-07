@@ -42,6 +42,9 @@
         An updated version of application must have a versionNumber value higher
         than the previous version. Required. -->
     <versionNumber>1.0.0</versionNumber>
+    <icon>
+       <image>icon114.png</image>
+    </icon>
     <platformVersion>10.2.0</platformVersion>
 
     <!-- Fourth digit segment of the package version. First three segments are
@@ -155,11 +158,6 @@
     </initialWindow>
 
     <!-- The icon for the application, which should be 114x114. -->
-    <icon>
-        <image>appIcon.png</image>
-        <image>appIcon120.png</image>
-        <image>appIcon480.png</image>
-    </icon>
 
     <asset path="icon.png">icon.png</asset>
     <asset path="assets">assets</asset>
@@ -171,6 +169,7 @@
     <asset path="assets/images/appIcon.png">appIcon.png</asset>
     <asset path="assets/images/appIcon120.png">appIcon120.png</asset>
     <asset path="assets/images/appIcon480.png">appIcon480.png</asset>
+    <asset path="assets/images/icon114.png">icon114.png</asset>
 
     <!-- Request permission to post notification. -->
     <permission>post_notification</permission>

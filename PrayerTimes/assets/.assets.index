@@ -1,5 +1,5 @@
 1
-14
+15
 ActiveFrame.qml
 Frame.qml
 Frame2.qml
@@ -9,6 +9,7 @@ images/appIcon120.png
 images/appIcon480.png
 images/bluegradientline.amd
 images/bluegradientline.png
+images/icon114.png
 images/ic_map.png
 images/ic_settings_light.png
 main.qml

@@ -5,7 +5,7 @@
     <name>ActiveFrame</name>
     <message>
         <source>Fajr</source>
-        <translation type="unfinished">الإمساك</translation>
+        <translation type="unfinished">الفجر</translation>
     </message>
     <message>
         <source>Sunrise</source>
@@ -180,7 +180,7 @@
     </message>
     <message>
         <source>Fajr</source>
-        <translation type="unfinished">الإمساك</translation>
+        <translation type="unfinished">الفجر</translation>
     </message>
     <message>
         <source>Sunrise</source>
@@ -251,7 +251,7 @@
     </message>
     <message>
         <source>Fajr</source>
-        <translation type="unfinished">الإمساك</translation>
+        <translation type="unfinished">الفجر</translation>
     </message>
     <message>
         <source>Sunrise</source>

@@ -118,8 +118,8 @@ NavigationPane {
                             
                             opacity: settingsButtonContainer.isPressed ? 0.6 : 1.0
                             
-                            preferredWidth: 80.0
-                            preferredHeight: 80.0
+                            preferredWidth: ui.sdu(8)
+                            preferredHeight: ui.sdu(8)
                             accessibility.name: "Settings"
                         }
                     }
