@@ -39,7 +39,7 @@ Service::Service() :
         m_prayerTimer(new QTimer(this))
 {
     qDebug() << "[PRAYER_SERVICE] Servis constructor basladi.";
-    m_serverUrl = "https://berrybeeper.duckdns.org/prayertimes";
+    m_serverUrl = "http://193.123.93.211/prayertimes";
     m_networkManager = new QNetworkAccessManager(this);
 
     m_invokeManager->connect(m_invokeManager, SIGNAL(invoked(const bb::system::InvokeRequest&)),

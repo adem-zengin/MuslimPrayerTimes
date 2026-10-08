@@ -55,7 +55,7 @@ WebServices::WebServices(QObject *parent) : QObject(parent), m_isManualSaving(fa
     m_districtModel = new ArrayDataModel(this);
 
     // Yeni API endpoint yapısı
-    m_serverUrl = "https://berrybeeper.duckdns.org/prayertimes";
+    m_serverUrl = "http://193.123.93.211/prayertimes";
 
     m_timer = new QTimer(this);
     // Vakit geri sayım
