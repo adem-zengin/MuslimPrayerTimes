@@ -252,7 +252,7 @@ void Service::onPrayerTimerFired()
             arVakitler["yatsi"]  = QString::fromUtf8("العشاء");
 
             QString vakitAdi = arVakitler.value(vakitKey, m_currentScheduledVakit);
-            body = QString::fromUtf8("صلاة %1!").arg(vakitAdi);
+            body = QString::fromUtf8("وقت %1!").arg(vakitAdi);
         }
         else { // Varsayılan: İngilizce ("en")
             title = "Prayer Times";
