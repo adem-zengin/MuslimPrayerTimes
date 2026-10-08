@@ -318,33 +318,27 @@ void Service::handleCalendarForVakit(const QString &vakit, const QVariantMap &to
 {
     CalendarService calendarService;
     QSettings settings;
-    QString subjectToMatch = vakit.toUpper() + " Vakti";
 
-    qDebug() << "[PRAYER_SERVICE] handleCalendarForVakit baslatildi -> Vakit:" << vakit;
+    QString vakitKey = vakit.toLower();
 
-    // --- A. ÖNCEKİ GÜNÜN İLGİLİ VAKTİNİ SİL ---
+    // --- A. DÜNÜN ESKİ ETKİNLİĞİNİ SİL ---
+    // Sadece "PrayerAppEvent" imzasına bakıyoruz; dil, başlık veya vakit adı sorgulamıyoruz.
     QDate dun = bugunTarih.addDays(-1);
     EventSearchParameters params;
     params.setStart(QDateTime(dun, QTime(0, 0)));
     params.setEnd(QDateTime(dun, QTime(23, 59)));
 
     QList<CalendarEvent> events = calendarService.events(params);
-    int deletedCount = 0;
     foreach (const CalendarEvent &ev, events) {
-        if (ev.body() == "PrayerAppEvent" && ev.subject() == subjectToMatch) {
+        if (ev.body() == "PrayerAppEvent") {
             calendarService.deleteEvent(ev);
-            deletedCount++;
         }
     }
-    qDebug() << "[PRAYER_SERVICE] Dunku eski etkinlikler silindi. Adet:" << deletedCount;
 
     // --- B. YARINKİ GÜN İÇİN İLGİLİ VAKTİ OLUŞTUR ---
-    if (tomorrowsTimes.isEmpty()) {
-        qDebug() << "[PRAYER_SERVICE] Yarin icin vakit verisi bulunamadi!";
-        return;
-    }
+    if (tomorrowsTimes.isEmpty()) return;
 
-    QString yarinVakitSaatiStr = tomorrowsTimes.value(vakit).toString();
+    QString yarinVakitSaatiStr = tomorrowsTimes.value(vakitKey).toString();
     if (yarinVakitSaatiStr.isEmpty()) return;
 
     QTime yarinVakitSaati = QTime::fromString(yarinVakitSaatiStr, "HH:mm");
@@ -354,34 +348,72 @@ void Service::handleCalendarForVakit(const QString &vakit, const QVariantMap &to
     QDateTime eventStart(yarin, yarinVakitSaati);
 
     QList<CalendarFolder> folders = calendarService.folders();
-    if (folders.isEmpty()) {
-        qDebug() << "[PRAYER_SERVICE] HATA: Takvim klasoru bulunamadi!";
-        return;
-    }
+    if (folders.isEmpty()) return;
 
     CalendarFolder targetFolder = folders.first();
     foreach (const CalendarFolder &f, folders) {
         if (!f.isReadOnly()) { targetFolder = f; break; }
     }
 
+    // Sistem/Uygulama diline göre takvim başlığını seçiyoruz
+    QString lang = QLocale::system().name().left(2).toLower();
+    QString subject;
+
+    if (lang == "tr") {
+        QHash<QString, QString> trVakitler;
+        trVakitler["imsak"]  = QString::fromUtf8("İmsak");
+        trVakitler["gunes"]  = QString::fromUtf8("Güneş");
+        trVakitler["ogle"]   = QString::fromUtf8("Öğle");
+        trVakitler["ikindi"] = QString::fromUtf8("İkindi");
+        trVakitler["aksam"]  = QString::fromUtf8("Akşam");
+        trVakitler["yatsi"]  = QString::fromUtf8("Yatsı");
+
+        QString vakitAdi = trVakitler.value(vakitKey, vakit);
+        subject = QString::fromUtf8("%1 Vakti").arg(vakitAdi);
+    }
+    else if (lang == "ar") {
+        QHash<QString, QString> arVakitler;
+        arVakitler["imsak"]  = QString::fromUtf8("الفجر");
+        arVakitler["gunes"]  = QString::fromUtf8("الشروق");
+        arVakitler["ogle"]   = QString::fromUtf8("الظهر");
+        arVakitler["ikindi"] = QString::fromUtf8("العصر");
+        arVakitler["aksam"]  = QString::fromUtf8("المغرب");
+        arVakitler["yatsi"]  = QString::fromUtf8("العشاء");
+
+        QString vakitAdi = arVakitler.value(vakitKey, vakit);
+        subject = QString::fromUtf8("وقت  %1").arg(vakitAdi);
+    }
+    else { // English / Default
+        QHash<QString, QString> enVakitler;
+        enVakitler["imsak"]  = QString::fromUtf8("Fajr");
+        enVakitler["gunes"]  = QString::fromUtf8("Sunrise");
+        enVakitler["ogle"]   = QString::fromUtf8("Dhuhr");
+        enVakitler["ikindi"] = QString::fromUtf8("Asr");
+        enVakitler["aksam"]  = QString::fromUtf8("Maghrib");
+        enVakitler["yatsi"]  = QString::fromUtf8("Isha");
+
+        QString vakitAdi = enVakitler.value(vakitKey, vakit);
+        subject = QString::fromUtf8("%1 Time").arg(vakitAdi);
+    }
+
     CalendarEvent ev;
-    ev.setSubject(subjectToMatch);
+    ev.setSubject(subject);
     ev.setStartTime(eventStart);
 
-    int userDurationMinutes = settings.value("durations/" + vakit, 15).toInt();
+    int userDurationMinutes = settings.value("durations/" + vakitKey, 15).toInt();
     ev.setEndTime(eventStart.addSecs(userDurationMinutes * 60));
 
-    ev.setBody("PrayerAppEvent");
+    ev.setBody("PrayerAppEvent"); // Silme işlemi için tek referansımız
     ev.setAccountId(targetFolder.accountId());
     ev.setFolderId(targetFolder.id());
     ev.setBusyStatus(bb::pim::calendar::BusyStatus::Busy);
 
-    int userReminderMinutes = settings.value("reminders/" + vakit, 15).toInt();
+    int userReminderMinutes = settings.value("reminders/" + vakitKey, 15).toInt();
     ev.setReminder(userReminderMinutes);
 
     calendarService.createEvent(ev);
-    qDebug() << "[PRAYER_SERVICE] Yarin icin takvim etkinligi olusturuldu:" << subjectToMatch << eventStart.toString("yyyy-MM-dd HH:mm");
 }
+
 
 void Service::fetchPrayerTimes() {
     QSettings settings;
@@ -436,7 +468,8 @@ void Service::onPrayerTimesReply() {
     reply->deleteLater();
 }
 
-void Service::scheduleBatchNotifications(const QVariantList &dataList) {
+void Service::scheduleBatchNotifications(const QVariantList &dataList)
+{
     CalendarService calendarService;
     QDateTime suan = QDateTime::currentDateTime();
     QDate bugun = suan.date();
@@ -449,6 +482,10 @@ void Service::scheduleBatchNotifications(const QVariantList &dataList) {
     foreach (const CalendarFolder &f, folders) {
         if (!f.isReadOnly()) { targetFolder = f; break; }
     }
+
+    m_settings.sync();
+
+    QString lang = QLocale::system().name().left(2).toLower();
 
     foreach (const QVariant &gun, dataList) {
         QVariantMap gunMap = gun.toMap();
@@ -472,12 +509,52 @@ void Service::scheduleBatchNotifications(const QVariantList &dataList) {
             if (!vakitSaati.isValid()) continue;
             if (eventStart < suan) continue;
 
+            // Dile göre takvim etkinlik başlığı (Subject) oluşturma
+            QString subject;
+
+            if (lang == "tr") {
+                QHash<QString, QString> trVakitler;
+                trVakitler["imsak"]  = QString::fromUtf8("İmsak");
+                trVakitler["gunes"]  = QString::fromUtf8("Güneş");
+                trVakitler["ogle"]   = QString::fromUtf8("Öğle");
+                trVakitler["ikindi"] = QString::fromUtf8("İkindi");
+                trVakitler["aksam"]  = QString::fromUtf8("Akşam");
+                trVakitler["yatsi"]  = QString::fromUtf8("Yatsı");
+
+                QString vakitAdi = trVakitler.value(vakit, vakit);
+                subject = QString::fromUtf8("%1 Vakti").arg(vakitAdi);
+            }
+            else if (lang == "ar") {
+                QHash<QString, QString> arVakitler;
+                arVakitler["imsak"]  = QString::fromUtf8("الفجر");
+                arVakitler["gunes"]  = QString::fromUtf8("الشروق");
+                arVakitler["ogle"]   = QString::fromUtf8("الظهر");
+                arVakitler["ikindi"] = QString::fromUtf8("العصر");
+                arVakitler["aksam"]  = QString::fromUtf8("المغرب");
+                arVakitler["yatsi"]  = QString::fromUtf8("العشاء");
+
+                QString vakitAdi = arVakitler.value(vakit, vakit);
+                subject = QString::fromUtf8("وقت  %1").arg(vakitAdi);
+            }
+            else { // İngilizce / Varsayılan ("en")
+                QHash<QString, QString> enVakitler;
+                enVakitler["imsak"]  = QString::fromUtf8("Fajr");
+                enVakitler["gunes"]  = QString::fromUtf8("Sunrise");
+                enVakitler["ogle"]   = QString::fromUtf8("Dhuhr");
+                enVakitler["ikindi"] = QString::fromUtf8("Asr");
+                enVakitler["aksam"]  = QString::fromUtf8("Maghrib");
+                enVakitler["yatsi"]  = QString::fromUtf8("Isha");
+
+                QString vakitAdi = enVakitler.value(vakit, vakit);
+                subject = QString::fromUtf8("%1 Time").arg(vakitAdi);
+            }
+
             bb::pim::calendar::CalendarEvent ev;
-            ev.setSubject(vakit.toUpper() + " Vakti");
+            ev.setSubject(subject);
             ev.setStartTime(eventStart);
 
             int userDurationMinutes = m_settings.value("durations/" + vakit, 15).toInt();
-            ev.setEndTime(eventStart.addSecs(userDurationMinutes*60));
+            ev.setEndTime(eventStart.addSecs(userDurationMinutes * 60));
 
             ev.setBody("PrayerAppEvent");
             ev.setAccountId(targetFolder.accountId());

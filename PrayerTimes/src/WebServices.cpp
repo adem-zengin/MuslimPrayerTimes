@@ -430,26 +430,29 @@ QString WebServices::getSavedValue(const QString &key) {
     return m_settings.value(key, "").toString();
 }
 
-void WebServices::scheduleBatchNotifications(const QVariantList &dataList) {
-    bb::pim::calendar::CalendarService calendarService;
+void WebServices::scheduleBatchNotifications(const QVariantList &dataList)
+{
+    CalendarService calendarService;
     QDateTime suan = QDateTime::currentDateTime();
     QDate bugun = suan.date();
-    QDate onGunSonra = bugun.addDays(1);
+    QDate birGunSonra = bugun.addDays(1);
 
-    QList<bb::pim::calendar::CalendarFolder> folders = calendarService.folders();
+    QList<CalendarFolder> folders = calendarService.folders();
     if (folders.isEmpty()) return;
 
-    bb::pim::calendar::CalendarFolder targetFolder = folders.first();
-    foreach (const bb::pim::calendar::CalendarFolder &f, folders) {
+    CalendarFolder targetFolder = folders.first();
+    foreach (const CalendarFolder &f, folders) {
         if (!f.isReadOnly()) { targetFolder = f; break; }
     }
+
+    QString lang = QLocale::system().name().left(2).toLower();
 
     foreach (const QVariant &gun, dataList) {
         QVariantMap gunMap = gun.toMap();
         QString dateStr = gunMap["date"].toString().left(10);
         QDate hedefTarih = QDate::fromString(dateStr, "yyyy-MM-dd");
 
-        if (!hedefTarih.isValid() || hedefTarih < bugun || hedefTarih > onGunSonra) continue;
+        if (!hedefTarih.isValid() || hedefTarih < bugun || hedefTarih > birGunSonra) continue;
 
         QVariantMap timesMap = gunMap["times"].toMap();
         QStringList vakitler;
@@ -466,13 +469,52 @@ void WebServices::scheduleBatchNotifications(const QVariantList &dataList) {
             if (!vakitSaati.isValid()) continue;
             if (eventStart < suan) continue;
 
+            // Dile göre takvim etkinlik başlığı (Subject) oluşturma
+            QString subject;
+
+            if (lang == "tr") {
+                QHash<QString, QString> trVakitler;
+                trVakitler["imsak"]  = QString::fromUtf8("İmsak");
+                trVakitler["gunes"]  = QString::fromUtf8("Güneş");
+                trVakitler["ogle"]   = QString::fromUtf8("Öğle");
+                trVakitler["ikindi"] = QString::fromUtf8("İkindi");
+                trVakitler["aksam"]  = QString::fromUtf8("Akşam");
+                trVakitler["yatsi"]  = QString::fromUtf8("Yatsı");
+
+                QString vakitAdi = trVakitler.value(vakit, vakit);
+                subject = QString::fromUtf8("%1 Vakti").arg(vakitAdi);
+            }
+            else if (lang == "ar") {
+                QHash<QString, QString> arVakitler;
+                arVakitler["imsak"]  = QString::fromUtf8("الفجر");
+                arVakitler["gunes"]  = QString::fromUtf8("الشروق");
+                arVakitler["ogle"]   = QString::fromUtf8("الظهر");
+                arVakitler["ikindi"] = QString::fromUtf8("العصر");
+                arVakitler["aksam"]  = QString::fromUtf8("المغرب");
+                arVakitler["yatsi"]  = QString::fromUtf8("العشاء");
+
+                QString vakitAdi = arVakitler.value(vakit, vakit);
+                subject = QString::fromUtf8("وقت  %1").arg(vakitAdi);
+            }
+            else { // İngilizce / Varsayılan ("en")
+                QHash<QString, QString> enVakitler;
+                enVakitler["imsak"]  = QString::fromUtf8("Fajr");
+                enVakitler["gunes"]  = QString::fromUtf8("Sunrise");
+                enVakitler["ogle"]   = QString::fromUtf8("Dhuhr");
+                enVakitler["ikindi"] = QString::fromUtf8("Asr");
+                enVakitler["aksam"]  = QString::fromUtf8("Maghrib");
+                enVakitler["yatsi"]  = QString::fromUtf8("Isha");
+
+                QString vakitAdi = enVakitler.value(vakit, vakit);
+                subject = QString::fromUtf8("%1 Time").arg(vakitAdi);
+            }
+
             bb::pim::calendar::CalendarEvent ev;
-            ev.setSubject(vakit.toUpper() + " Vakti");
+            ev.setSubject(subject);
             ev.setStartTime(eventStart);
 
-            // Sizin kodunuzdaki yapı (durations kullanımı)
             int userDurationMinutes = m_settings.value("durations/" + vakit, 15).toInt();
-            ev.setEndTime(eventStart.addSecs(userDurationMinutes*60));
+            ev.setEndTime(eventStart.addSecs(userDurationMinutes * 60));
 
             ev.setBody("PrayerAppEvent");
             ev.setAccountId(targetFolder.accountId());
