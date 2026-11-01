@@ -45,11 +45,3 @@ An Islamic calendar and prayer times application designed for rooted BlackBerry 
 ## 📋 Requirements
 
 - BlackBerry 10 device (rooted)
-
----
-
-## 💖 Support
-
-If you find this project useful, you can support its development on Patreon:
-
-[Patreon](https://www.patreon.com/16129770/join)
