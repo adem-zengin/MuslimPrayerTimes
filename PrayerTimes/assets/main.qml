@@ -132,7 +132,7 @@ NavigationPane {
             layout: StackLayout {}
             horizontalAlignment: HorizontalAlignment.Fill
             verticalAlignment: VerticalAlignment.Fill
-            background: Color.White // For a clean look
+            //background: Color.White // For a clean look
             
             // TOP SECTION: Date Panel (35% of screen)
             Container {
