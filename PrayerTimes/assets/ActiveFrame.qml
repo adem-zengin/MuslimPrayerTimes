@@ -35,6 +35,8 @@ Container {
         horizontalAlignment: HorizontalAlignment.Center
         verticalAlignment: VerticalAlignment.Center
         layout: StackLayout {}
+        topPadding: ui.sdu(2.0)
+        bottomPadding: ui.sdu(2.0)
         
         Label {
             // Outputting through the translation function
@@ -61,15 +63,13 @@ Container {
                     // Directly calling our translation function
                     var ayIsmi = getHicriAy(parseInt(h.month)) || h.month;
                     
-                    return h.day + " " + ayIsmi + "\n" + h.year;
+                    return h.day + " " + ayIsmi;
                 }
                 return "";
             }
             
             textStyle.color: Color.Gray
             horizontalAlignment: HorizontalAlignment.Center
-            multiline: true
-            textStyle.textAlign: TextAlign.Center
         }
         
     }
