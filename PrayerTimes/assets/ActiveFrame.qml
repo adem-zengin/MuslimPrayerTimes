@@ -52,7 +52,6 @@ Container {
             horizontalAlignment: HorizontalAlignment.Center
         }
         
-        Divider { topMargin: 10; bottomMargin: 10 }
         
         Label {
             text: {
@@ -62,13 +61,16 @@ Container {
                     // Directly calling our translation function
                     var ayIsmi = getHicriAy(parseInt(h.month)) || h.month;
                     
-                    return h.day + " " + ayIsmi + " " + h.year;
+                    return h.day + " " + ayIsmi + "\n" + h.year;
                 }
                 return "";
             }
             
             textStyle.color: Color.Gray
             horizontalAlignment: HorizontalAlignment.Center
+            multiline: true
+            textStyle.textAlign: TextAlign.Center
         }
+        
     }
 }
